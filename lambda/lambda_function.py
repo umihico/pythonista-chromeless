@@ -2,7 +2,7 @@ from selenium.webdriver import Chrome, ChromeOptions
 import json
 
 
-def lambda_handler(event, context):
+def gen_chrome():
     options = ChromeOptions()
     options.binary_location = "./bin/headless-chromium"
     options.add_argument("--headless")
@@ -17,10 +17,15 @@ def lambda_handler(event, context):
     options.add_argument("--single-process")
     options.add_argument("--ignore-certificate-errors")
     options.add_argument("--homedir=/tmp")
-    driver = Chrome("./bin/chromedriver", chrome_options=options)
-    driver.get("https://www.google.co.jp")
-    title = driver.title
-    driver.quit()
+    chrome = Chrome("./bin/chromedriver", chrome_options=options)
+    return chrome
+
+
+def lambda_handler(event, context):
+    chrome = gen_chrome()
+    chrome.get("https://www.google.co.jp")
+    title = chrome.title
+    chrome.quit()
     print(title)
     text = f'Hello from Lambda!{title}'
     return {
