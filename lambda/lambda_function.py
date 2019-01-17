@@ -1,5 +1,7 @@
 from selenium.webdriver import Chrome, ChromeOptions
 import json
+import traceback
+from pprint import pprint
 
 
 def gen_chrome():
@@ -21,14 +23,32 @@ def gen_chrome():
     return chrome
 
 
+def gen_method_of_returning_google_title():
+    def method(self):
+        self.get("https://www.google.co.jp")
+        title = self.title
+        self.quit()
+        print(title)
+        return title
+    return method
+
+
 def lambda_handler(event, context):
+    # pprint(event)
+    if event["httpMethod"] == "POST":
+        code = event["body"]["code"]
+        method = code_to_method(code)
+    else:
+        method = gen_method_of_returning_google_title()
+    Chrome.method = method
     chrome = gen_chrome()
-    chrome.get("https://www.google.co.jp")
-    title = chrome.title
-    chrome.quit()
-    print(title)
-    text = f'Hello from Lambda!{title}'
+    try:
+        result = chrome.method()
+        statusCode = 200
+    except Exception as e:
+        statusCode = 501
+        result = traceback.format_exc()
     return {
-        'statusCode': 200,
-        'body': json.dumps(text)
+        'statusCode': statusCode,
+        'body': json.dumps(result)
     }
