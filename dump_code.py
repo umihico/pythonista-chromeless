@@ -15,12 +15,10 @@ def dump_code(func, arg, kwargs):
 
 def test():
     def method(i):
-        return i+100
-    funcdata = dump_code(func=method)
-    print(funcdata)
-    print(type(funcdata))
-    reborn_func = load_code(funcdata)
-    print(reborn_func(10))
+        return i*10
+    funcdata = dump_code(method, (10,), {})
+    reborn_func, arg, kwargs = load_code(funcdata)
+    print(reborn_func(*arg, **kwargs))
 
 
 if __name__ == '__main__':
