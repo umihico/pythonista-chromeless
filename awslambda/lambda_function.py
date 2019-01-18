@@ -2,7 +2,7 @@ from selenium.webdriver import Chrome, ChromeOptions
 import json
 import traceback
 from pprint import pprint
-from codedumper import load_code
+from load_code import load_code
 
 
 def gen_chrome():
@@ -56,5 +56,5 @@ def lambda_handler(event, context):
             pass
     return {
         'statusCode': statusCode,
-        'body': result
+        'body': str(result)
     }

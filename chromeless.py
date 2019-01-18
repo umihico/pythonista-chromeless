@@ -1,5 +1,4 @@
-import urllib.request
-from awslambda import dump_code, load_code
+from dump_code import dump_code
 import requests
 import types
 
@@ -13,10 +12,10 @@ class Chromeless():
         def method(self, *arg, **kwargs):
             arg = arg or tuple()
             kwargs = kwargs or dict()
-            return self.run_method(func, arg, kwargs)
+            return self._run_method(func, arg, kwargs)
         setattr(self, func.__name__, types.MethodType(method, self))
 
-    def run_method(self, func, arg, kwargs):
+    def _run_method(self, func, arg, kwargs):
         data = dump_code(func, arg, kwargs)
         response = requests.post(self.gateway_url, data=data, headers=self.headers)
         body = response.text
