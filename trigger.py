@@ -7,8 +7,7 @@ from awslambda import dump_code, load_code
 
 def trigger(method='GET', func=None):
     if func:
-        pickled_code = dump_code(func)
-        data = pickled_code
+        data = dump_code(func)
     else:
         data = None
     headers = {"x-api-key": apikey}
@@ -19,4 +18,5 @@ def trigger(method='GET', func=None):
 
 
 if __name__ == '__main__':
-    print(trigger())
+    # print(trigger())
+    print(trigger("POST", trigger))

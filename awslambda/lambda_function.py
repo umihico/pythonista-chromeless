@@ -35,20 +35,20 @@ def gen_method_of_returning_google_title():
 
 
 def lambda_handler(event, context):
-    # pprint(event)
-    if event["httpMethod"] == "POST":
-        load_code = event["body"]
-        method = load_code(funcname, byte_func)
-    else:
-        method = gen_method_of_returning_google_title()
-    Chrome.method = method
-    chrome = gen_chrome()
     try:
+        if event["httpMethod"] == "POST":
+            # print(event["body"])
+            method = load_code(event["body"])
+        else:
+            method = gen_method_of_returning_google_title()
+        Chrome.method = method
+        chrome = gen_chrome()
         result = chrome.method()
         statusCode = 200
     except Exception as e:
         statusCode = 501
         result = traceback.format_exc()
+        print(result)
     return {
         'statusCode': statusCode,
         'body': json.dumps(result)

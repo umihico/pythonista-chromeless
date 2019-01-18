@@ -7,7 +7,6 @@ def method(self):
     self.get("https://www.google.co.jp")
     title = self.title
     self.quit()
-    print(title)
     return title
 
 
@@ -24,7 +23,7 @@ def test_local_binding(sended_method):
 def main():
     sended_method = load_code(dump_code(method))
     test_local_binding(sended_method)
-    # print(trigger(method="POST", func=method))
+    print(trigger(method="POST", func=method))
 
 
 if __name__ == '__main__':
