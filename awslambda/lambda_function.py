@@ -40,9 +40,7 @@ def lambda_handler(event, context):
             # print(event["body"])
             method, arg, kwargs = load_code(event["body"])
         else:
-            method = gen_method_of_returning_google_title()
-            arg = tuple()
-            kwargs = dict()
+            raise Exception(f"httpMethod is {event['httpMethod']}, not 'POST'")
         Chrome.method = method
         chrome = gen_chrome()
         result = chrome.method(*arg, **kwargs)
