@@ -1,5 +1,5 @@
 from gateway_credentials import url, apikey
-from serverlesschrome import ServerlessChrome
+from chromeless import Chromeless
 
 
 def get_title(self, url):
@@ -8,7 +8,7 @@ def get_title(self, url):
 
 
 def test():
-    schrome = ServerlessChrome(url, apikey)
+    schrome = Chromeless(url, apikey)
     schrome.attach_method(get_title)
     print(schrome.get_title("https://google.com"))
 

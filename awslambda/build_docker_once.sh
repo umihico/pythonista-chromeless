@@ -1,1 +1,1 @@
-sudo docker build -t serverless_plain_lambda .
+sudo docker build -t chromeless .

@@ -4,7 +4,7 @@ import requests
 import types
 
 
-class ServerlessChrome():
+class Chromeless():
     def __init__(self, gateway_url, apikey):
         self.gateway_url = gateway_url
         self.headers = {"x-api-key": apikey}
