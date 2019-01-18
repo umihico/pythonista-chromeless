@@ -3,21 +3,30 @@ import marshal
 import pickle
 
 
-def load_code(ff_byte_code):
-    pickled_code = bytes([int(ff_byte_code[i:i+2], 16) for i in range(0, len(ff_byte_code), 2)])
-    funcname, marshaled_code = pickle.loads(pickled_code)
+def load_code(hex_pickled_data):
+    pickled_data = bytes([int(hex_pickled_data[i:i+2], 16)
+                          for i in range(0, len(hex_pickled_data), 2)])
+    funcname, marshaled_code, arg, kwargs = pickle.loads(pickled_data)
     code = marshal.loads(marshaled_code)
     func = types.FunctionType(code, globals(), funcname)
-    return func
+    return func, arg, kwargs
 
 
-def dump_code(func):
+def dump_code(func, arg, kwargs):
     byte_func = marshal.dumps(func.__code__)
     funcname = func.__name__
-    pickled_code = pickle.dumps((funcname, byte_func))
-    ff_code = ''.join([str("%X" % i).zfill(2) for i in pickled_code])
-    ff_byte_code = ff_code.encode()
-    return ff_byte_code
+    pickled_data = pickle.dumps((funcname, byte_func, arg, kwargs))
+    hex_pickled_data = pickle_to_hex_string(pickled_data)
+    hex_encoded_pickled_data = hex_pickled_data.encode()
+    return hex_encoded_pickled_data
+
+
+def pickle_to_hex_string(pickled):
+    return ''.join([str("%X" % i).zfill(2) for i in pickled])
+
+
+def hex_string_to_pickle(hex_list):
+    return bytes([int(hex_list[i:i+2], 16) for i in range(0, len(hex_list), 2)])
 
 
 def test():

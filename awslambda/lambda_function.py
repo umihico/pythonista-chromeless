@@ -38,18 +38,25 @@ def lambda_handler(event, context):
     try:
         if event["httpMethod"] == "POST":
             # print(event["body"])
-            method = load_code(event["body"])
+            method, arg, kwargs = load_code(event["body"])
         else:
             method = gen_method_of_returning_google_title()
+            arg = tuple()
+            kwargs = dict()
         Chrome.method = method
         chrome = gen_chrome()
-        result = chrome.method()
+        result = chrome.method(*arg, **kwargs)
         statusCode = 200
     except Exception as e:
         statusCode = 501
         result = traceback.format_exc()
         print(result)
+    finally:
+        try:
+            chrome.quit()
+        except Exception as e:
+            pass
     return {
         'statusCode': statusCode,
-        'body': json.dumps(result)
+        'body': result
     }
