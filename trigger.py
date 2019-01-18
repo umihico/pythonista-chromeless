@@ -2,10 +2,15 @@ GATEWAY_URL = "https://7wsebamsma.execute-api.us-west-2.amazonaws.com/default/se
 from apikey import apikey
 import urllib.request
 import json
+from awslambda import dump_code, load_code
 
 
-def trigger(method='GET', data=None):
-    data = data or json.dumps(data).encode()
+def trigger(method='GET', func=None):
+    if func:
+        pickled_code = dump_code(func)
+        data = pickled_code
+    else:
+        data = None
     headers = {"x-api-key": apikey}
     req = urllib.request.Request(GATEWAY_URL, data=data, headers=headers, method=method)
     with urllib.request.urlopen(req, timeout=29) as res:
