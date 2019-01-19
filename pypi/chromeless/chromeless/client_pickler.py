@@ -28,7 +28,11 @@ def test():
 
 
 def unpickle_result(base64str_data):
-    return pickle.loads(base64.b64decode(base64str_data.encode()))
+    try:
+        return pickle.loads(base64.b64decode(base64str_data.encode()))
+    except Exception as e:
+        print(base64str_data)
+        raise
 
 
 if __name__ == '__main__':
