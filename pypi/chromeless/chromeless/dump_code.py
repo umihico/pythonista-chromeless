@@ -1,15 +1,15 @@
 import types
 import marshal
 import pickle
+import base64
 
 
 def dump_code(func, arg, kwargs):
     byte_func = marshal.dumps(func.__code__)
     funcname = func.__name__
     pickled_data = pickle.dumps((funcname, byte_func, arg, kwargs))
-    hex_pickled_data = ''.join([str("%X" % i).zfill(2) for i in pickled_data])
-    hex_encoded_pickled_data = hex_pickled_data.encode()
-    return hex_encoded_pickled_data
+    base64str_data = base64.b64encode(pickled_data).decode()
+    return base64str_data
 
 
 def test():

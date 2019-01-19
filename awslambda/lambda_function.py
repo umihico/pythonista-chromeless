@@ -24,16 +24,6 @@ def gen_chrome():
     return chrome
 
 
-def gen_method_of_returning_google_title():
-    def method(self):
-        self.get("https://www.google.co.jp")
-        title = self.title
-        self.quit()
-        print(title)
-        return title
-    return method
-
-
 def lambda_handler(event, context):
     try:
         if event["httpMethod"] == "POST":

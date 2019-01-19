@@ -1,4 +1,4 @@
-__all__ = ["Chromeless", ]
+__all__ = ["Chromeless", "dump_code"]
 
 from .dump_code import dump_code
 import requests
