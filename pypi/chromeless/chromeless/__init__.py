@@ -1,6 +1,6 @@
 __all__ = ["Chromeless", "dump_code"]
 
-from .dump_code import dump_code
+from .client_pickler import dump_code, unpickle_result
 import requests
 import types
 
@@ -14,7 +14,7 @@ class Chromeless():
         def method(self, *arg, **kwargs):
             arg = arg or tuple()
             kwargs = kwargs or dict()
-            return self._run_method(func, arg, kwargs)
+            return unpickle_result(self._run_method(func, arg, kwargs))
         setattr(self, func.__name__, types.MethodType(method, self))
 
     def _run_method(self, func, arg, kwargs):
