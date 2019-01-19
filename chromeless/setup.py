@@ -2,13 +2,14 @@ from setuptools import setup, find_packages
 import requests
 import os
 from ppickle import dump, load
-package_info_filename = "package_info.txt"
+package_info_filename = "package_info.ppickle"
 package_info = load(package_info_filename)
 USERNAME = package_info["USERNAME"]
 REPONAME = package_info["REPONAME"] or os.path.split(os.path.dirname(os.path.abspath(__file__)))[-1]
 GITHUB_API_URL = package_info["GITHUB_API_URL"] or f"https://api.github.com/repos/{USERNAME}/{REPONAME}"
 URL = package_info["URL"] or f'https://github.com/{USERNAME}/{REPONAME}'
 AUTHOR_EMAIL = package_info["AUTHOR_EMAIL"] or f'{USERNAME}@users.noreply.github.com'
+README_PATH = package_info["README_PATH"] or 'README.md'
 requirements = [
     "requests",
 ]
@@ -38,7 +39,7 @@ def increment_version():
 
 
 def get_long_description():
-    with open('README.md', 'r', encoding='utf-8') as f:
+    with open(README_PATH, 'r', encoding='utf-8') as f:
         long_description = f.read()
 
 

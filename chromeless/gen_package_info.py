@@ -7,5 +7,6 @@ package_info = {
     "URL": None,
     "AUTHOR_EMAIL": None,
     "version": None,
+    "README_PATH": None,
 }
 dump("package_info.ppickle", package_info)
