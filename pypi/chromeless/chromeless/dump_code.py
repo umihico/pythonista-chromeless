@@ -13,11 +13,9 @@ def dump_code(func, arg, kwargs):
 
 
 def test():
-    def _load_code(hex_pickled_data):
-        """copied from awslambda dir"""
-        pickled_data = bytes([int(hex_pickled_data[i:i+2], 16)
-                              for i in range(0, len(hex_pickled_data), 2)])
-        funcname, marshaled_code, arg, kwargs = pickle.loads(pickled_data)
+    def _load_code(base64str_data):
+        b = base64.b64decode(base64str_data.encode())
+        funcname, marshaled_code, arg, kwargs = pickle.loads(b)
         code = marshal.loads(marshaled_code)
         func = types.FunctionType(code, globals(), funcname)
         return func, arg, kwargs
