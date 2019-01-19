@@ -31,8 +31,10 @@ def unpickle_result(base64str_data):
     try:
         return pickle.loads(base64.b64decode(base64str_data.encode()))
     except Exception as e:
-        print(base64str_data)
-        raise
+        # '{"message": "Internal server error"}'
+        # '{"message": "Endpoint request timed out"}'
+        raise Exception(
+            f"lambda returned {base64str_data}. please check CloudWatch and capacity of lambda is enough.")
 
 
 if __name__ == '__main__':
