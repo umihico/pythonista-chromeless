@@ -30,6 +30,11 @@ class TestChromeless(unittest.TestCase):
         self.assertTrue(type(letter_num) is int)
         self.assertTrue(letter_num > 0)
 
+    def test_get(self):
+        chrome = Chromeless(awsgateway_url, awsgateway_apikey)
+        result = chrome.get("http://aws.amazon.com")
+        self.assertTrue(result is None)
+
 
 if __name__ == '__main__':
     unittest.main()

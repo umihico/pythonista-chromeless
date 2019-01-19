@@ -42,6 +42,11 @@ def run_examples():
     print(result, type(result))
     # 58 <class 'int'>
 
+    chrome = Chromeless(awsgateway_url, awsgateway_apikey)
+    result = chrome.get("http://aws.amazon.com")
+    print(result, type(result))
+    # None <class 'NoneType'>
+
 
 if __name__ == '__main__':
     run_examples()

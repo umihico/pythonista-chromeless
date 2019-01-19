@@ -5,6 +5,7 @@ sys.path.insert(0, '..')
 import examples
 sys.path.append('../pypi/chromeless')
 from chromeless import Chromeless, unpickle_result, dump_codes
+from selenium.webdriver import Chrome
 
 
 def request(func, *arg, **kwargs):
@@ -13,8 +14,8 @@ def request(func, *arg, **kwargs):
         examples.get_list,
         examples.get_title_letter_num
     ]
-    stored_funcs = {func.__name__: func for func in examples_funcs}
     called_name_as_method = func.__name__
+    stored_funcs = {func.__name__: func for func in examples_funcs}
     # print(called_name_as_method, arg, kwargs)
     data = dump_codes(called_name_as_method, arg, kwargs, stored_funcs)
     event = {
@@ -44,6 +45,10 @@ class TestLambda(unittest.TestCase):
         letter_num = request(examples.get_title_letter_num, "http://github.com")
         self.assertTrue(type(letter_num) is int)
         self.assertTrue(letter_num > 0)
+
+    def test_get(self):
+        result = request(Chrome.get, "http://aws.amazon.com")
+        self.assertTrue(result is None)
 
 
 if __name__ == '__main__':
