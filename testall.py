@@ -17,9 +17,9 @@ class TestChromeless(unittest.TestCase):
         self.assertTrue(type(title) is str)
         self.assertTrue("Google" in title)
 
-    def test_get_as_list(self):
-        chrome = gen_attached_chrome(examples.get_as_list)
-        top_questions = chrome.get_as_list()
+    def test_get_list(self):
+        chrome = gen_attached_chrome(examples.get_list)
+        top_questions = chrome.get_list()
         self.assertTrue(type(top_questions) is list)
         self.assertTrue(len(top_questions) > 0)
 
