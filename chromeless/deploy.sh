@@ -25,6 +25,7 @@ if [ $success -ne 0 ]; then
 fi
 version=$(cat version.txt)
 git reset HEAD version.txt
-git add version.txt
+git reset HEAD package_info.ppickle
+git add version.txt package_info.ppickle
 git commit -m "version ${version} ${commit_msg}"
 git push
