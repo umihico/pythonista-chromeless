@@ -10,7 +10,7 @@ def gen_attached_chrome(func):
     return chrome
 
 
-class TestStringMethods(unittest.TestCase):
+class TestChromeless(unittest.TestCase):
     def test_get_title(self):
         chrome = gen_attached_chrome(examples.get_title)
         title = chrome.get_title("https://google.com")
