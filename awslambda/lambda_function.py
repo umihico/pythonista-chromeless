@@ -2,7 +2,7 @@ from selenium.webdriver import Chrome, ChromeOptions
 import json
 import traceback
 from pprint import pprint
-from server_pickler import load_code, pickle_result
+from server_pickler import load_methods, pickle_result
 
 
 def gen_chrome():
@@ -28,12 +28,15 @@ def lambda_handler(event, context):
     try:
         if event["httpMethod"] == "POST":
             # print(event["body"])
-            method, arg, kwargs = load_code(event["body"])
+            called_name_as_method, arg, kwargs, funcs = load_methods(event["body"])
         else:
             raise Exception(f"httpMethod is {event['httpMethod']}, not 'POST'")
-        Chrome.method = method
+        for name, func in funcs.items():
+            setattr(Chrome, name, func)
         chrome = gen_chrome()
-        result = chrome.method(*arg, **kwargs)
+        # setattr(self, func.__name__, types.MethodType(method, self))
+        method = getattr(chrome, called_name_as_method)
+        result = method(*arg, **kwargs)
         statusCode = 200
     except Exception as e:
         statusCode = 501
