@@ -1,4 +1,6 @@
-from dump_code import dump_code
+__all__ = ["Chromeless", ]
+
+from .dump_code import dump_code
 import requests
 import types
 
