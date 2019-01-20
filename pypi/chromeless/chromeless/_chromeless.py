@@ -2,9 +2,6 @@
 from .client_pickler import dump_codes, unpickle_result
 from .screenshot_client import exact_result_and_save_screenshots
 import requests
-import types
-import io
-from PIL import Image
 
 
 class LambdaAlreadyTriggeredException(Exception):
@@ -39,7 +36,3 @@ class Chromeless():
         result = unpickle_result(body)
         result = exact_result_and_save_screenshots(result)
         return result
-
-    def save_screenshot_binary(self, filename, binarydata):
-        img = Image.open(io.BytesIO(binarydata))
-        img.save(filename)
