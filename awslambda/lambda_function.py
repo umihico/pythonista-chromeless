@@ -39,17 +39,19 @@ def lambda_handler(event, context):
         # setattr(self, func.__name__, types.MethodType(method, self))
         method = getattr(chrome, called_name_as_method)
         result = method(*arg, **kwargs)
-        result = screenshothandler.wrap_with_screenshots(result)
         statusCode = 200
     except Exception as e:
         statusCode = 501
-        result = traceback.format_exc()
-        print(result)
+        print("------server printing error start------")
+        traceback.print_exc()
+        print("------server printing error end------")
+        result = e
     finally:
         try:
             chrome.quit()
         except Exception as e:
             pass
+    result = screenshothandler.wrap_with_screenshots(result)
     return {
         'statusCode': statusCode,
         'body': pickle_result(result)

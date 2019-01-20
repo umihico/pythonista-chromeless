@@ -1,8 +1,10 @@
 import examples
+from selenium.common.exceptions import NoSuchElementException
 import unittest
 from apigateway_credentials import awsgateway_url, awsgateway_apikey
 from pypi.chromeless.chromeless import Chromeless, LambdaAlreadyTriggeredException
 import os
+# raise
 
 
 def gen_attached_chrome(func):
@@ -48,6 +50,11 @@ class TestChromeless(unittest.TestCase):
         chrome.get_title("http://github.com")
         with self.assertRaises(LambdaAlreadyTriggeredException):
             chrome.get_title("https://google.com")
+
+    def test_cause_NoSuchElementException(self):
+        chrome = gen_attached_chrome(examples.cause_NoSuchElementException)
+        with self.assertRaises(NoSuchElementException):
+            chrome.cause_NoSuchElementException()
 
 
 if __name__ == '__main__':

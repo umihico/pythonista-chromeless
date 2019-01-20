@@ -1,3 +1,4 @@
+import selenium
 try:
     """developer in git env"""
     from apigateway_credentials import awsgateway_url, awsgateway_apikey
@@ -96,6 +97,20 @@ def example_of_twice_called_error():
     # (expected error) If you have multiple methods, please wrap them and call the wrapper instead.
 
 
+def cause_NoSuchElementException(self):
+    self.get("http://github.com")
+    self.find_element_by_xpath("//nonexistelement")  # cause NoSuchElementException in lambda
+
+
+def example_of_cause_NoSuchElementException():
+    chrome = Chromeless(awsgateway_url, awsgateway_apikey)
+    chrome.attach_method(cause_NoSuchElementException)
+    try:
+        chrome.cause_NoSuchElementException()
+    except selenium.common.exceptions.NoSuchElementException as e:
+        print('(expected error)', e)
+
+
 if __name__ == '__main__':
     example_of_get_title()
     example_of_get_list()
@@ -103,3 +118,4 @@ if __name__ == '__main__':
     example_of_get_screenshot()
     example_of_default_method()
     example_of_twice_called_error()
+    example_of_cause_NoSuchElementException()

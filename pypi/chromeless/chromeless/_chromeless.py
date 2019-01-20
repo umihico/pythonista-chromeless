@@ -35,4 +35,6 @@ class Chromeless():
         body = response.text
         result = unpickle_result(body)
         result = exact_result_and_save_screenshots(result)
+        if isinstance(result, Exception):
+            raise result
         return result

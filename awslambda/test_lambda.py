@@ -1,5 +1,6 @@
 import unittest
 import sys
+import selenium
 from lambda_function import lambda_handler
 sys.path.insert(0, '..')
 import examples
@@ -13,7 +14,8 @@ def request(func, *arg, **kwargs):
         examples.get_title,
         examples.get_list,
         examples.get_title_letter_num,
-        examples.get_screenshot
+        examples.get_screenshot,
+        examples.cause_NoSuchElementException,
     ]
     called_name_as_method = func.__name__
     stored_funcs = {func.__name__: func for func in examples_funcs}
@@ -25,8 +27,6 @@ def request(func, *arg, **kwargs):
     }
     d = lambda_handler(event, None)
     statusCode = d['statusCode']
-    if statusCode != 200:
-        raise Exception(d['body'])
     response = exact_result_and_save_screenshots(unpickle_result(d['body']))
     return response
 
@@ -53,6 +53,12 @@ class TestLambda(unittest.TestCase):
 
     def test_screenshot(self):
         result = request(Chrome.get_screenshot, "https://github.com/umihico", "screenshot.png")
+
+    def test_screenshot(self):
+        result = request(examples.cause_NoSuchElementException)
+        # print(type(result))
+        with self.assertRaises(selenium.common.exceptions.NoSuchElementException):
+            raise result
 
 
 if __name__ == '__main__':
