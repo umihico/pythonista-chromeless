@@ -2,6 +2,7 @@ import examples
 import unittest
 from apigateway_credentials import awsgateway_url, awsgateway_apikey
 from pypi.chromeless.chromeless import Chromeless
+import os
 
 
 def gen_attached_chrome(func):
@@ -34,6 +35,14 @@ class TestChromeless(unittest.TestCase):
         chrome = Chromeless(awsgateway_url, awsgateway_apikey)
         result = chrome.get("http://aws.amazon.com")
         self.assertTrue(result is None)
+
+    def test_get_screenshot(self):
+        chrome = Chromeless(awsgateway_url, awsgateway_apikey)
+        chrome.attach_method(examples.get_screenshot)
+        path = "screenshot.png"
+        result = chrome.get_screenshot("https://github.com/umihico", path)
+        self.assertTrue(result is None)
+        self.assertTrue(os.path.exists(path))
 
 
 if __name__ == '__main__':

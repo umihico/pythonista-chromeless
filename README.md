@@ -27,3 +27,12 @@ chrome.get_title("https://google.com") # Google
 + create and attach AWS API Gateway and note the url and apikey
 + `pip install chromeless`
 + write and run your method
+
+## Tips
++ if you wanna take screenshot, submit as one method like this  
+
+```python
+def get_screenshot(self,url,filename):
+    self.get(url)
+    self.save_screenshot(filename)
+```

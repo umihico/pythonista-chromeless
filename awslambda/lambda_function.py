@@ -1,4 +1,5 @@
 from selenium.webdriver import Chrome, ChromeOptions
+from screenshot_handler import ScreenshotHandler
 import json
 import traceback
 from pprint import pprint
@@ -34,9 +35,11 @@ def lambda_handler(event, context):
         for name, func in funcs.items():
             setattr(Chrome, name, func)
         chrome = gen_chrome()
+        screenshothandler = ScreenshotHandler(chrome)
         # setattr(self, func.__name__, types.MethodType(method, self))
         method = getattr(chrome, called_name_as_method)
         result = method(*arg, **kwargs)
+        result = screenshothandler.wrap_with_screenshots(result)
         statusCode = 200
     except Exception as e:
         statusCode = 501

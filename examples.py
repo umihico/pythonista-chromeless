@@ -21,6 +21,12 @@ def get_title_letter_num(self, url):
     return len(self.get_title(url))
 
 
+def get_screenshot(self, url, filename):
+    """screenshot test"""
+    self.get(url)
+    self.save_screenshot(filename)
+
+
 def run_examples():
 
     chrome = Chromeless(awsgateway_url, awsgateway_apikey)
@@ -44,6 +50,12 @@ def run_examples():
 
     chrome = Chromeless(awsgateway_url, awsgateway_apikey)
     result = chrome.get("http://aws.amazon.com")
+    print(result, type(result))
+    # None <class 'NoneType'>
+
+    chrome = Chromeless(awsgateway_url, awsgateway_apikey)
+    chrome.attach_method(get_screenshot)
+    result = chrome.get_screenshot("https://github.com/umihico", "screenshot.png")
     print(result, type(result))
     # None <class 'NoneType'>
 

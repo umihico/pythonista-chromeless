@@ -4,7 +4,7 @@ from lambda_function import lambda_handler
 sys.path.insert(0, '..')
 import examples
 sys.path.append('../pypi/chromeless')
-from chromeless import Chromeless, unpickle_result, dump_codes
+from chromeless import Chromeless, unpickle_result, dump_codes, exact_result_and_save_screenshots
 from selenium.webdriver import Chrome
 
 
@@ -12,7 +12,8 @@ def request(func, *arg, **kwargs):
     examples_funcs = [
         examples.get_title,
         examples.get_list,
-        examples.get_title_letter_num
+        examples.get_title_letter_num,
+        examples.get_screenshot
     ]
     called_name_as_method = func.__name__
     stored_funcs = {func.__name__: func for func in examples_funcs}
@@ -26,7 +27,7 @@ def request(func, *arg, **kwargs):
     statusCode = d['statusCode']
     if statusCode != 200:
         raise Exception(d['body'])
-    response = unpickle_result(d['body'])
+    response = exact_result_and_save_screenshots(unpickle_result(d['body']))
     return response
 
 
@@ -49,6 +50,9 @@ class TestLambda(unittest.TestCase):
     def test_get(self):
         result = request(Chrome.get, "http://aws.amazon.com")
         self.assertTrue(result is None)
+
+    def test_screenshot(self):
+        result = request(Chrome.get_screenshot, "https://github.com/umihico", "screenshot.png")
 
 
 if __name__ == '__main__':
