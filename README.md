@@ -20,13 +20,18 @@ chrome.get_title("https://google.com") # Google
 ```
 
 ## Installing
-+ create one AWS lambda fuction
-+ select [Code entry type] and [Upload a .ZIP file]
-+ upload awslambda/deploy_package.zip
-+ increase capacity of lambda. 3 seconds is not enough
-+ create and attach AWS API Gateway and note the url and apikey
-+ `pip install chromeless`
-+ write and run your method
+1. AWS environment
+  + Create new lambda function
+  + Select [Code entry type] and [Upload a .ZIP file]
+  + Upload [deploy_package.zip](https://github.com/umihico/chromeless/blob/master/awslambda/deploy_package.zip)
+  + Increase the timeout setting and the memory setting enough
+  + Create API Gateway for this lambda and note the url and apikey
+2. Local environment
+  + `pip install chromeless`
+  + download [examples.py](https://github.com/umihico/chromeless/blob/master/examples.py)
+  + put your credentials as `awsgateway_apikey` and `awsgateway_url` in examples.py
+
+That's it! Now run the examples.py and change it as you want!
 
 ## Tips
 + if you wanna take screenshot, submit as one method like this  
