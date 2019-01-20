@@ -1,7 +1,7 @@
 import examples
 import unittest
 from apigateway_credentials import awsgateway_url, awsgateway_apikey
-from pypi.chromeless.chromeless import Chromeless
+from pypi.chromeless.chromeless import Chromeless, LambdaAlreadyTriggeredException
 import os
 
 
@@ -37,12 +37,17 @@ class TestChromeless(unittest.TestCase):
         self.assertTrue(result is None)
 
     def test_get_screenshot(self):
-        chrome = Chromeless(awsgateway_url, awsgateway_apikey)
-        chrome.attach_method(examples.get_screenshot)
+        chrome = gen_attached_chrome(examples.get_screenshot)
         path = "screenshot.png"
         result = chrome.get_screenshot("https://github.com/umihico", path)
         self.assertTrue(result is None)
         self.assertTrue(os.path.exists(path))
+
+    def test_trigger_twice(self):
+        chrome = gen_attached_chrome(examples.get_title)
+        chrome.get_title("http://github.com")
+        with self.assertRaises(LambdaAlreadyTriggeredException):
+            chrome.get_title("https://google.com")
 
 
 if __name__ == '__main__':

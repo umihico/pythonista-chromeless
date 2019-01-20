@@ -21,23 +21,33 @@ chrome.get_title("https://google.com") # Google
 
 ## Installing
 1. AWS environment
-  + Create new lambda function
-  + Select [Code entry type] and [Upload a .ZIP file]
-  + Upload [deploy_package.zip](https://github.com/umihico/chromeless/blob/master/awslambda/deploy_package.zip)
-  + Increase the timeout setting and the memory setting enough
-  + Create API Gateway for this lambda and note the url and apikey
+    + Create new lambda function
+    + Select [Code entry type] and [Upload a .ZIP file]
+    + Upload [deploy_package.zip](https://github.com/umihico/chromeless/blob/master/awslambda/deploy_package.zip)
+    + Increase the timeout setting and the memory setting enough
+    + Create API Gateway for this lambda and note the url and apikey
 2. Local environment
-  + `pip install chromeless`
-  + download [examples.py](https://github.com/umihico/chromeless/blob/master/examples.py)
-  + put your credentials as `awsgateway_apikey` and `awsgateway_url` in examples.py
+    + `pip install chromeless`
+    + download [examples.py](https://github.com/umihico/chromeless/blob/master/examples.py)
+    + put your credentials as `awsgateway_apikey` and `awsgateway_url` in examples.py
 
 That's it! Now run the examples.py and change it as you want!
 
 ## Tips
-+ if you wanna take screenshot, submit as one method like this  
++ **One call, One instance.** Solution is wrapping.  
 
 ```python
-def get_screenshot(self,url,filename):
+# BAD EXAMPLE
+chrome = Chromeless(awsgateway_url, awsgateway_apikey)
+chrome.get("https://google.com") # lambda get triigered here
+chrome.save_screenshot("screenshot.png") # so next method won't work
+
+# SOLUTION
+def wrapper(self,url,filename):
     self.get(url)
     self.save_screenshot(filename)
+
+chrome = Chromeless(awsgateway_url, awsgateway_apikey)
+chrome.attach_method(wrapper)
+chrome.wrapper("https://google.com","screenshot.png")
 ```

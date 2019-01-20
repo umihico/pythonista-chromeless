@@ -1,11 +1,11 @@
 try:
     """developer in git env"""
     from apigateway_credentials import awsgateway_url, awsgateway_apikey
-    from pypi.chromeless.chromeless import Chromeless
+    from pypi.chromeless.chromeless import Chromeless, LambdaAlreadyTriggeredException
 except Exception as e:
     """general user who downloaded this script"""
     # pip install chromeless
-    from chromeless import Chromeless
+    from chromeless import Chromeless, LambdaAlreadyTriggeredException
     # replace credentials
     awsgateway_apikey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
     awsgateway_url = "https://XXXXXXXXXX.execute-api.us-west-2.amazonaws.com/default/chromeless"
@@ -85,9 +85,21 @@ def example_of_default_method():
     # None <class 'NoneType'>
 
 
+def example_of_twice_called_error():
+    """you can't call method more than once"""
+    chrome = Chromeless(awsgateway_url, awsgateway_apikey)
+    chrome.get("http://github.com")
+    try:
+        chrome.get("https://google.com")
+    except LambdaAlreadyTriggeredException as e:
+        print('(expected error)', e)
+    # (expected error) If you have multiple methods, please wrap them and call the wrapper instead.
+
+
 if __name__ == '__main__':
     example_of_get_title()
     example_of_get_list()
     example_of_get_title_letter_num()
     example_of_get_screenshot()
     example_of_default_method()
+    example_of_twice_called_error()
