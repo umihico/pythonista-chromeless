@@ -1,6 +1,6 @@
 
-from .client_pickler import dump_codes, unpickle_result
-from .screenshot_client import exact_result_and_save_screenshots
+from .client_pickler import _dump_codes, _unpickle_result
+from .screenshot_client import _exact_result_and_save_screenshots
 import requests
 
 
@@ -9,11 +9,12 @@ class LambdaAlreadyTriggeredException(Exception):
 
 
 class Chromeless():
-    def __init__(self, gateway_url, apikey):
+    def __init__(self, gateway_url, apikey, chrome_options=None):
         self.gateway_url = gateway_url
         self.headers = {"x-api-key": apikey}
         self.stored_funcs = {}
         self.is_submitted = False
+        self.chrome_options = chrome_options
 
     def attach_method(self, func):
         self.stored_funcs[func.__name__] = func
@@ -30,11 +31,12 @@ class Chromeless():
         self.is_submitted = True
         arg = arg or tuple()
         kwargs = kwargs or dict()
-        data = dump_codes(self.called_name_as_method, arg, kwargs, self.stored_funcs)
+        data = _dump_codes(self.called_name_as_method, arg, kwargs,
+                           self.stored_funcs, self.chrome_options)
         response = requests.post(self.gateway_url, data=data, headers=self.headers)
         body = response.text
-        result = unpickle_result(body)
-        result = exact_result_and_save_screenshots(result)
+        result = _unpickle_result(body)
+        result = _exact_result_and_save_screenshots(result)
         if isinstance(result, Exception):
             raise result
         return result

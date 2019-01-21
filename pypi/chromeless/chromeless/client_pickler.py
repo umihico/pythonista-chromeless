@@ -4,15 +4,15 @@ import pickle
 import base64
 
 
-def dump_codes(called_name_as_method, arg, kwargs, stored_funcs):
+def _dump_codes(called_name_as_method, arg, kwargs, stored_funcs, chrome_options=None):
     dumped_funcs = {name: marshal.dumps(
         func.__code__) for name, func in stored_funcs.items()}
-    pickled_data = pickle.dumps((called_name_as_method, arg, kwargs, dumped_funcs))
+    pickled_data = pickle.dumps((called_name_as_method, arg, kwargs, dumped_funcs, chrome_options))
     base64str_data = base64.b64encode(pickled_data).decode()
     return base64str_data
 
 
-def unpickle_result(base64str_data):
+def _unpickle_result(base64str_data):
     try:
         return pickle.loads(base64.b64decode(base64str_data.encode()))
     except Exception as e:

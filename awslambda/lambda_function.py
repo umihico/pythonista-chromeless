@@ -1,4 +1,4 @@
-from selenium.webdriver import Chrome
+from selenium.webdriver import Chrome, ChromeOptions
 from screenshot_handler import ScreenshotHandler
 import json
 import traceback
@@ -9,6 +9,7 @@ from chrome_options_handler import gen_default_chrome_options
 
 def gen_chrome(chrome_options=None):
     chrome_options = chrome_options or gen_default_chrome_options()
+    chrome_options.binary_location = "./bin/headless-chromium"  # required
     chrome = Chrome("./bin/chromedriver", chrome_options=chrome_options)
     return chrome
 
@@ -17,12 +18,12 @@ def lambda_handler(event, context):
     try:
         if event["httpMethod"] == "POST":
             # print(event["body"])
-            called_name_as_method, arg, kwargs, funcs = load_methods(event["body"])
+            called_name_as_method, arg, kwargs, funcs, chrome_options = load_methods(event["body"])
         else:
             raise Exception(f"httpMethod is {event['httpMethod']}, not 'POST'")
         for name, func in funcs.items():
             setattr(Chrome, name, func)
-        chrome = gen_chrome()
+        chrome = gen_chrome(chrome_options)
         screenshothandler = ScreenshotHandler(chrome)
         # setattr(self, func.__name__, types.MethodType(method, self))
         method = getattr(chrome, called_name_as_method)

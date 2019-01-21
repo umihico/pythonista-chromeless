@@ -1,11 +1,11 @@
 import unittest
 import sys
 import selenium
+from selenium.webdriver import ChromeOptions
 from lambda_function import lambda_handler
 sys.path.insert(0, '..')
 import examples
-sys.path.append('../pypi/chromeless')
-from chromeless import Chromeless, unpickle_result, dump_codes, exact_result_and_save_screenshots
+from pypi.chromeless.chromeless import Chromeless, _unpickle_result, _dump_codes, _exact_result_and_save_screenshots
 from selenium.webdriver import Chrome
 
 
@@ -20,14 +20,17 @@ def request(func, *arg, **kwargs):
     called_name_as_method = func.__name__
     stored_funcs = {func.__name__: func for func in examples_funcs}
     # print(called_name_as_method, arg, kwargs)
-    data = dump_codes(called_name_as_method, arg, kwargs, stored_funcs)
+    chrome_options = kwargs.get("chrome_options", None)
+    if chrome_options:
+        del kwargs['chrome_options']
+    data = _dump_codes(called_name_as_method, arg, kwargs, stored_funcs, chrome_options)
     event = {
         "httpMethod": "POST",
         "body": data
     }
     d = lambda_handler(event, None)
     statusCode = d['statusCode']
-    response = exact_result_and_save_screenshots(unpickle_result(d['body']))
+    response = _exact_result_and_save_screenshots(_unpickle_result(d['body']))
     return response
 
 
@@ -60,6 +63,33 @@ class TestLambda(unittest.TestCase):
         with self.assertRaises(selenium.common.exceptions.NoSuchElementException):
             raise result
 
+    def test_chrome_options(self):
+        chrome_options = ChromeOptions()
+        chrome_options.binary_location = "./bin/headless-chromium"
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1280x1696")
+        chrome_options.add_argument("--disable-application-cache")
+        chrome_options.add_argument("--disable-infobars")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--hide-scrollbars")
+        chrome_options.add_argument("--enable-logging")
+        chrome_options.add_argument("--log-level=0")
+        chrome_options.add_argument("--single-process")
+        chrome_options.add_argument("--ignore-certificate-errors")
+        chrome_options.add_argument("--homedir=/tmp")
+        title = request(examples.get_title, "https://google.com", chrome_options=chrome_options)
+        self.assertTrue(type(title) is str)
+        self.assertTrue("Google" in title)
+
+    def test_empty_chrome_options(self):
+        chrome_options = ChromeOptions()
+        chrome_options.binary_location = "./bin/headless-chromium"
+        title = request(examples.get_title, "https://google.com", chrome_options=chrome_options)
+        # works without chrome_options
+        self.assertTrue(type(title) is str)
+        self.assertTrue("Google" in title)
+
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(failfast=True)

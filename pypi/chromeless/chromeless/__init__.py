@@ -1,3 +1,3 @@
 from ._chromeless import LambdaAlreadyTriggeredException, Chromeless
-from .client_pickler import unpickle_result, dump_codes
-from .screenshot_client import exact_result_and_save_screenshots
+from .client_pickler import _unpickle_result, _dump_codes
+from .screenshot_client import _exact_result_and_save_screenshots

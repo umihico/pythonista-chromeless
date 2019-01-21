@@ -1,4 +1,5 @@
 import selenium
+from selenium.webdriver import Chrome, ChromeOptions
 try:
     """developer in git env"""
     from apigateway_credentials import awsgateway_url, awsgateway_apikey
@@ -111,6 +112,27 @@ def example_of_cause_NoSuchElementException():
         print('(expected error)', e)
 
 
+def example_of_changing_windowsize():
+    chrome_options = ChromeOptions()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920x1080")
+    # default is "--window-size=1280x1696"
+    chrome_options.add_argument("--disable-application-cache")
+    chrome_options.add_argument("--disable-infobars")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--hide-scrollbars")
+    chrome_options.add_argument("--enable-logging")
+    chrome_options.add_argument("--log-level=0")
+    chrome_options.add_argument("--single-process")
+    chrome_options.add_argument("--ignore-certificate-errors")
+    chrome_options.add_argument("--homedir=/tmp")
+    chrome = Chromeless(awsgateway_url, awsgateway_apikey, chrome_options=chrome_options)
+    chrome.attach_method(get_screenshot)
+    result = chrome.get_screenshot("https://github.com/umihico", "screenshot.png")
+    print(result, type(result))
+
+
 if __name__ == '__main__':
     example_of_get_title()
     example_of_get_list()
@@ -119,3 +141,4 @@ if __name__ == '__main__':
     example_of_default_method()
     example_of_twice_called_error()
     example_of_cause_NoSuchElementException()
+    example_of_changing_windowsize()

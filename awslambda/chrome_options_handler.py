@@ -3,7 +3,6 @@ from selenium.webdriver import ChromeOptions
 
 def gen_default_chrome_options():
     chrome_options = ChromeOptions()
-    chrome_options.binary_location = "./bin/headless-chromium"
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1280x1696")
