@@ -51,10 +51,10 @@ class TestLambda(unittest.TestCase):
         result = request(Chrome.get, "http://aws.amazon.com")
         self.assertTrue(result is None)
 
-    def test_screenshot(self):
+    def test_get_screenshot(self):
         result = request(Chrome.get_screenshot, "https://github.com/umihico", "screenshot.png")
 
-    def test_screenshot(self):
+    def test_cause_NoSuchElementException(self):
         result = request(examples.cause_NoSuchElementException)
         # print(type(result))
         with self.assertRaises(selenium.common.exceptions.NoSuchElementException):

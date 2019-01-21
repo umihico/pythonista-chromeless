@@ -1,27 +1,15 @@
-from selenium.webdriver import Chrome, ChromeOptions
+from selenium.webdriver import Chrome
 from screenshot_handler import ScreenshotHandler
 import json
 import traceback
 from pprint import pprint
 from server_pickler import load_methods, pickle_result
+from chrome_options_handler import gen_default_chrome_options
 
 
-def gen_chrome():
-    options = ChromeOptions()
-    options.binary_location = "./bin/headless-chromium"
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1280x1696")
-    options.add_argument("--disable-application-cache")
-    options.add_argument("--disable-infobars")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--hide-scrollbars")
-    options.add_argument("--enable-logging")
-    options.add_argument("--log-level=0")
-    options.add_argument("--single-process")
-    options.add_argument("--ignore-certificate-errors")
-    options.add_argument("--homedir=/tmp")
-    chrome = Chrome("./bin/chromedriver", chrome_options=options)
+def gen_chrome(chrome_options=None):
+    chrome_options = chrome_options or gen_default_chrome_options()
+    chrome = Chrome("./bin/chromedriver", chrome_options=chrome_options)
     return chrome
 
 
