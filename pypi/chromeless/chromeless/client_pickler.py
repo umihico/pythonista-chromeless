@@ -2,13 +2,15 @@ import types
 import marshal
 import pickle
 import base64
+import zlib
 
 
 def _dump_codes(called_name_as_method, arg, kwargs, stored_funcs, chrome_options=None):
     dumped_funcs = {name: marshal.dumps(
         func.__code__) for name, func in stored_funcs.items()}
     pickled_data = pickle.dumps((called_name_as_method, arg, kwargs, dumped_funcs, chrome_options))
-    base64str_data = base64.b64encode(pickled_data).decode()
+    compressed_data = zlib.compress(pickled_data)
+    base64str_data = base64.b64encode(compressed_data).decode()
     return base64str_data
 
 
