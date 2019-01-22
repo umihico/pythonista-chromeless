@@ -17,4 +17,4 @@ def load_methods(base64str_data):
 
 
 def pickle_result(result):
-    return base64.b64encode(pickle.dumps(result)).decode()
+    return base64.b64encode(zlib.compress(pickle.dumps(result))).decode()

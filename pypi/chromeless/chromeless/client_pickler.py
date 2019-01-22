@@ -16,7 +16,7 @@ def _dump_codes(called_name_as_method, arg, kwargs, stored_funcs, chrome_options
 
 def _unpickle_result(base64str_data):
     try:
-        return pickle.loads(base64.b64decode(base64str_data.encode()))
+        return pickle.loads(zlib.decompress(base64.b64decode(base64str_data.encode())))
     except Exception as e:
         # '{"message": "Internal server error"}'
         # '{"message": "Endpoint request timed out"}'
