@@ -55,7 +55,7 @@ class TestLambda(unittest.TestCase):
         self.assertTrue(result is None)
 
     def test_get_screenshot(self):
-        result = request(Chrome.get_screenshot, "https://github.com/umihico", "screenshot.png")
+        result = request(Chrome.get_screenshot, "http://www.hatena.ne.jp/", "../screenshot.png")
 
     def test_cause_NoSuchElementException(self):
         result = request(examples.cause_NoSuchElementException)
