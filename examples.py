@@ -72,7 +72,7 @@ def example_of_get_screenshot():
     """
     chrome = Chromeless(awsgateway_url, awsgateway_apikey)
     chrome.attach_method(get_screenshot)
-    result = chrome.get_screenshot("https://github.com/umihico", "screenshot.png")
+    result = chrome.get_screenshot("https://www.yahoo.co.jp/", "screenshot.png")
     print(result, type(result))
     # None <class 'NoneType'>
 

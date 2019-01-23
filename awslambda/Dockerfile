@@ -1,10 +1,9 @@
 FROM lambci/lambda:build-python3.6
 
 ENV AWS_DEFAULT_REGION ap-northeast-1
-ENV APP_DIR /var/task
+ENV HOME /var/task
 
-ADD . .
+COPY . /var/task/
 
-CMD pip --quiet install -r requirements.txt -t $APP_DIR && \
-  zip -q9 deploy_package.zip lambda_function.py && \
-  zip -rq9 deploy_package.zip *
+CMD pip --quiet install -r requirements.txt -t $HOME && \
+    zip -rq9 deploy_package.zip ./

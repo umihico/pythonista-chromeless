@@ -5,6 +5,10 @@ import traceback
 from pprint import pprint
 from server_pickler import load_methods, pickle_result
 from chrome_options_handler import gen_default_chrome_options
+import os
+
+
+os.environ['HOME'] = os.environ['LAMBDA_TASK_ROOT']  # to load fonts
 
 
 def gen_chrome(chrome_options=None):
