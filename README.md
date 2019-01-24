@@ -1,22 +1,27 @@
 # chromeless
-AWS lambda unit which execute given code on selenium
+AWS lambda & selenium & python is powerful solution.  
+Let's access this benefit easily!
+
++ Don't create lambda every time. Just install this one.
++ Write the method and send it through API.
++ Selenium dynamically execute your script.
 
 ## Example
 ```python
-# write the code as method of selenium.webdriver.Chrome
+# Write the method
 def get_title(self, url):
     self.get(url)
     return self.title
 
-# prepare your credentials
+# Prepare your credentials
 gateway_url = "https://XXXXXXXXXX.execute-api.us-west-2.amazonaws.com/default/chromeless"
 gateway_apikey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-# Then attach the function and just call it.
+# Attach the function and call it.
 from chromeless import Chromeless
 chrome = Chromeless(gateway_url, gateway_apikey)
 chrome.attach_method(get_title)
-chrome.get_title("https://google.com") # Google
+print(chrome.get_title("https://google.com")) # Google
 ```
 
 ## Installing
@@ -31,7 +36,7 @@ chrome.get_title("https://google.com") # Google
     + download [examples.py](https://github.com/umihico/chromeless/blob/master/examples.py)
     + put your credentials as `awsgateway_apikey` and `awsgateway_url` in examples.py
 
-That's it! Now run the examples.py and change it as you want!
+That's it! Now run the examples.py or custom as you want!
 
 ## Tips
 + **One call, One instance.** Solution is wrapping.  
@@ -39,8 +44,8 @@ That's it! Now run the examples.py and change it as you want!
 ```python
 # BAD EXAMPLE
 chrome = Chromeless(awsgateway_url, awsgateway_apikey)
-chrome.get("https://google.com") # lambda get triigered here
-chrome.save_screenshot("screenshot.png") # so next method won't work
+chrome.get("https://google.com") # Lambda get triigered here.
+chrome.save_screenshot("screenshot.png") # So any following methods are rejected.
 
 # SOLUTION
 def wrapper(self,url,filename):
@@ -52,7 +57,7 @@ chrome.attach_method(wrapper)
 chrome.wrapper("https://google.com","screenshot.png")
 ```
 
-+ you can set chrome_options to change window resolution
++ You can set chrome_options to change window resolution
 
 ```python
 chrome_options = ChromeOptions()
