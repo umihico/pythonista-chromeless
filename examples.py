@@ -1,16 +1,20 @@
 import selenium
 from selenium.webdriver import Chrome, ChromeOptions
+
 try:
-    """developer in git env"""
+    """umihico"""
     from apigateway_credentials import awsgateway_url, awsgateway_apikey
-    from pypi.chromeless.chromeless import Chromeless, LambdaAlreadyTriggeredException
 except Exception as e:
-    """general user who downloaded this script"""
-    # pip install chromeless
-    from chromeless import Chromeless, LambdaAlreadyTriggeredException
-    # replace credentials
+    """others users, developers"""
     awsgateway_apikey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
     awsgateway_url = "https://XXXXXXXXXX.execute-api.us-west-2.amazonaws.com/default/chromeless"
+
+try:
+    """developers (cloners)"""
+    from pypi.chromeless.chromeless import Chromeless, LambdaAlreadyTriggeredException
+except Exception as e:
+    """script downloaders"""
+    from chromeless import Chromeless, LambdaAlreadyTriggeredException
 
 
 def get_title(self, url):
