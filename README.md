@@ -2,7 +2,7 @@
 AWS lambda & selenium & python is powerful solution.  
 Let's access this benefit easily!
 
-+ Don't create lambda every time. Just install this one.
++ Don't create lambda every time. Just create this once.
 + Write the method and send it through API.
 + Selenium dynamically execute your script.
 
@@ -17,7 +17,7 @@ def get_title(self, url):
 gateway_url = "https://XXXXXXXXXX.execute-api.us-west-2.amazonaws.com/default/chromeless"
 gateway_apikey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
-# Attach the function and call it.
+# Attach the method and call it.
 from chromeless import Chromeless
 chrome = Chromeless(gateway_url, gateway_apikey)
 chrome.attach_method(get_title)
