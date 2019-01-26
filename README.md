@@ -28,7 +28,7 @@ print(chrome.get_title("https://google.com")) # Google
 1. AWS environment
     + Create new lambda function
     + Select [Code entry type] and [Upload a .ZIP file]
-    + Upload [deploy_package.zip](https://github.com/umihico/chromeless/blob/master/awslambda/deploy_package.zip)
+    + Upload [deploy_package.zip](https://github.com/umihico/chromeless/blob/master/lambda/chromeless/deploy_package.zip)
     + Increase the timeout setting and the memory setting enough
     + Create API Gateway for this lambda and note the url and apikey
 2. Local environment
