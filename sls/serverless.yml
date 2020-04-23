@@ -22,7 +22,9 @@ service: pythonista-chromeless
 
 provider:
   name: aws
-  runtime: python3.8
+  runtime: python3.7
+  apiKeys:
+    - ${opt:stage, self:provider.stage}ChromelessApiKey
 
 # you can overwrite defaults here
 #  stage: dev
@@ -49,24 +51,35 @@ provider:
 #    variable1: value1
 
 # you can add packaging information here
-#package:
-#  include:
-#    - include-me.py
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.py
-#    - exclude-me-dir/**
+package:
+ # include:
+ #   - include-me.py
+ #   - include-me-dir/**
+  exclude:
+    - test.py
 
 functions:
-  hello:
-    handler: handler.hello
+  test:
+    handler: lambda_function._test_selenium
+    timeout: 30
+    memorySize: 2048
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
-#    events:
-#      - http:
-#          path: users/create
-#          method: get
+    events:
+      - http:
+          path: test
+          method: get
+          private: true
+  chromeless:
+    handler: lambda_function.lambda_handler
+    timeout: 30
+    memorySize: 2048
+    events:
+      - http:
+          path: chromeless
+          method: post
+          private: true
 #      - websocket: $connect
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
