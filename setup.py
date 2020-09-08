@@ -31,7 +31,7 @@ setuptools.setup(
     description="Serverless selenium which dynamically execute any given code.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/umihico/pythonista-chromeless",
     packages=['chromeless'],
     install_requires=requirements,
     classifiers=[
