@@ -2,8 +2,8 @@
 AWS lambda & selenium & python is powerful solution.  
 Let's access this benefit easily!
 
-+ Don't create lambda every time. Just create this once.
-+ Write the method and send it through API.
++ Don't create lambda functions every time. Just create this once.
++ Write the method.
 + Selenium dynamically execute your script.
 
 ## Example
@@ -13,63 +13,63 @@ def get_title(self, url):
     self.get(url)
     return self.title
 
-# Prepare your credentials
-gateway_url = "https://XXXXXXXXXX.execute-api.us-west-2.amazonaws.com/default/chromeless"
-gateway_apikey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-
 # Attach the method and call it.
 from chromeless import Chromeless
-chrome = Chromeless(gateway_url, gateway_apikey)
+chrome = Chromeless()
 chrome.attach_method(get_title)
 print(chrome.get_title("https://google.com")) # Google
 ```
 
 ## Installing
-1. AWS environment
-    + clone this repository and `cd sls`
-    + `serverless deploy` and note the url and apikey
+1. AWS environment (AWS CLI is required)
+    + `docker run -e AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id) -e AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key) -e AWS_DEFAULT_REGION=$(aws configure get region) umihico/chromelessenv`
+
 2. Local environment
     + `pip install chromeless`
-    + `cd sls`
-    + replace dummy credentials in `test.py` for test use
 
-That's it! Now run the `test.py` or custom as you want!
+That's it! Now run the `example.py` and confirm it works!
 
 ## Tips
-+ **One call, One instance.** Solution is wrapping.  
++ **Only one method is attachable.** Solution is wrapping.
 
 ```python
 # BAD EXAMPLE
-chrome = Chromeless(awsgateway_url, awsgateway_apikey)
-chrome.get("https://google.com") # Lambda get triigered here.
-chrome.save_screenshot("screenshot.png") # So any following methods are rejected.
+chrome = Chromeless()
+chrome.get("https://google.com") # Not attached method. AttributeError will be raised.
+chrome.title # Same. AttributeError.
 
 # SOLUTION
-def wrapper(self,url,filename):
+def wrapper(self, url):
     self.get(url)
-    self.save_screenshot(filename)
+    return self.title
 
-chrome = Chromeless(awsgateway_url, awsgateway_apikey)
-chrome.attach_method(wrapper)
-chrome.wrapper("https://google.com","screenshot.png")
+chrome = Chromeless()
+chrome.attach_method(wrapper) # You can attach only one method
+print(chrome.wrapper("https://google.com")) # prints 'Google'
+print(chrome.wrapper("https://microsoft.com")) # But you can execute as many times as you want.
+print(chrome.wrapper("https://apple.com")) # Arguments are adjustable each time.
 ```
 
-+ You can set chrome_options to change window resolution
++ To screenshot
 
 ```python
-chrome_options = ChromeOptions()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--window-size=1920x1080")
-# chrome_options.add_argument("--window-size=1280x1696") # DEFAULT
-chrome_options.add_argument("--disable-application-cache")
-chrome_options.add_argument("--disable-infobars")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--hide-scrollbars")
-chrome_options.add_argument("--enable-logging")
-chrome_options.add_argument("--log-level=0")
-chrome_options.add_argument("--single-process")
-chrome_options.add_argument("--ignore-certificate-errors")
-chrome_options.add_argument("--homedir=/tmp")
-chrome = Chromeless(awsgateway_url, awsgateway_apikey, chrome_options=chrome_options)
+# BAD EXAMPLE
+def bad_wrapper(self):
+  self.get("https://google.com")
+  self.save_screenshot("screenshot.png")
+  # There's no sense in saving files in AWS Lambda
+
+# SOLUTION
+def good_wrapper(self):
+  self.get("https://google.com")
+  return self.get_screenshot_as_png()
+  # return image as binary data.
+
+chrome = Chromeless()
+chrome.attach_method(good_wrapper)
+png = chrome.good_wrapper()
+# then write image down locally
+with open("screenshot.png", 'wb') as f:
+    f.write(png)
+
 ```

@@ -1,0 +1,37 @@
+service: chromeless
+
+provider:
+  name: aws
+  runtime: python3.7
+  stage: ${opt:stage, 'prod'}
+  apiKeys:
+    - chromeless-apikey-${self:provider.stage}
+
+package:
+  include:
+    - server.py
+    - picklelib.py
+  exclude:
+    - "**"
+
+functions:
+  server:
+    name: chromeless-server-${self:provider.stage}
+    handler: server.handler
+    timeout: 900
+    memorySize: 1024
+    layers:
+      - { Ref: SeleniumLambdaLayer }
+    events:
+      - http:
+          path: /
+          method: post
+          private: true
+
+layers:
+  selenium:
+    name: chromeless-server-selenium-layer-${self:provider.stage}
+    compatibleRuntimes:
+      - python3.7
+    package:
+      artifact: layer.zip
