@@ -16,7 +16,7 @@ def get_title(self, url):
 # Attach the method and call it.
 from chromeless import Chromeless
 chrome = Chromeless()
-chrome.attach_method(get_title)
+chrome.attach(get_title)
 print(chrome.get_title("https://google.com")) # Google
 ```
 
@@ -44,7 +44,7 @@ def wrapper(self, url):
     return self.title
 
 chrome = Chromeless()
-chrome.attach_method(wrapper) # You can attach only one method
+chrome.attach(wrapper) # You can attach only one method
 print(chrome.wrapper("https://google.com")) # prints 'Google'
 print(chrome.wrapper("https://microsoft.com")) # But you can execute as many times as you want.
 print(chrome.wrapper("https://apple.com")) # Arguments are adjustable each time.
@@ -66,7 +66,7 @@ def good_wrapper(self):
   # return image as binary data.
 
 chrome = Chromeless()
-chrome.attach_method(good_wrapper)
+chrome.attach(good_wrapper)
 png = chrome.good_wrapper()
 # then write image down locally
 with open("screenshot.png", 'wb') as f:
