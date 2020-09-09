@@ -4,6 +4,7 @@ import json
 from .picklelib import loads, dumps
 import sys
 import requests
+import os
 
 
 class Chromeless():
@@ -11,6 +12,8 @@ class Chromeless():
         self.gateway_url = gateway_url
         self.gateway_apikey = gateway_apikey
         self.options = chrome_options
+        if function_name == 'chromeless-server-prod' and 'CHROMELESS_SERVER_FUNCTION_NAME' in os.environ:
+            function_name = os.environ['CHROMELESS_SERVER_FUNCTION_NAME']
         self.function_name = function_name
 
     def attach(self, method):
