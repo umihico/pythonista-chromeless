@@ -2,6 +2,7 @@ import types
 from selenium import webdriver
 from picklelib import loads, dumps  # imports in Dockerfile
 import json
+import marshal
 
 
 def handler(event=None, context=None):
@@ -31,8 +32,7 @@ class ChromelessServer():
     def recieve(self, dumped):
         name, code, arg, kw, options = loads(dumped)
         chrome = self.gen_chrome(options)
-        exec(code)
-        func = locals()[name]
+        func = types.FunctionType(marshal.loads(code), globals(), name)
         setattr(chrome, name, types.MethodType(func, chrome))
         try:
             return dumps(getattr(chrome, name)(*arg, **kw))

@@ -1,4 +1,4 @@
-import inspect
+import marshal
 import boto3
 import json
 from .picklelib import loads, dumps
@@ -14,7 +14,7 @@ class Chromeless():
         self.function_name = function_name
 
     def attach(self, method):
-        self.code = inspect.getsource(method)
+        self.code = marshal.dumps(method.__code__)
         self.name = method.__name__
         setattr(self, self.name, self.__invoke)
 

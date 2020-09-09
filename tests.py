@@ -1,5 +1,5 @@
 from chromeless import Chromeless
-from example import example, assert_response, demo_url
+from example import example, assert_response, demo_url, supposed_title
 
 
 def test_example_normally():
@@ -20,3 +20,16 @@ def test_example_locally():
     chrome.attach(example)
     title, png, divcnt = chrome.example(demo_url)
     assert_response(title, png, divcnt)
+
+
+def test_non_toplevel_func():
+    def func(self, url):
+        self.get(url)
+        return self.title
+    chrome = Chromeless(function_name="local")
+    chrome.attach(func)
+    assert supposed_title in chrome.func(demo_url).lower()
+
+
+if __name__ == '__main__':
+    test_non_toplevel_func()
