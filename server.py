@@ -3,6 +3,7 @@ from selenium import webdriver
 from picklelib import loads, dumps  # imports in Dockerfile
 import json
 import marshal
+import textwrap
 
 
 def handler(event=None, context=None):
@@ -29,10 +30,23 @@ class ChromelessServer():
         return webdriver.Chrome(
             "/opt/python/bin/chromedriver", options=options)
 
+    def parse_code(self, code, name):
+        inspected, marshaled = code
+        try:
+            try:
+                exec(inspected)
+            except Exception:
+                exec(textwrap.dedent(inspected))
+            func = locals()[name]
+        except Exception:
+            func = types.FunctionType(
+                marshal.loads(marshaled), globals(), name)
+        return func
+
     def recieve(self, dumped):
         name, code, arg, kw, options = loads(dumped)
         chrome = self.gen_chrome(options)
-        func = types.FunctionType(marshal.loads(code), globals(), name)
+        func = self.parse_code(code, name)
         setattr(chrome, name, types.MethodType(func, chrome))
         try:
             return dumps(getattr(chrome, name)(*arg, **kw))

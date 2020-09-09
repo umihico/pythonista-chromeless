@@ -1,3 +1,4 @@
+import inspect
 import marshal
 import boto3
 import json
@@ -17,7 +18,7 @@ class Chromeless():
         self.function_name = function_name
 
     def attach(self, method):
-        self.code = marshal.dumps(method.__code__)
+        self.code = inspect.getsource(method), marshal.dumps(method.__code__)
         self.name = method.__name__
         setattr(self, self.name, self.__invoke)
 
