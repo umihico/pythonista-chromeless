@@ -30,7 +30,14 @@ RUN pip install setuptools
 RUN pip install wheel
 RUN pip install twine
 
-COPY . /app/
+COPY Dockerfile /app/
+COPY LICENSE /app/
+COPY Makefile /app/
+COPY README.md /app/
+RUN mkdir -p /app/chromeless
+COPY chromeless/*.py /app/chromeless/
+COPY serverless.yml /app/
+COPY *.py /app/
 COPY chromeless/picklelib.py /app/
 
 CMD ["sls", "deploy"]
