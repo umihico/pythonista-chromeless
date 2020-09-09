@@ -4,7 +4,7 @@ import os
 
 example_urls_with_title = [
     ('https://google.com', 'google'),
-    ('https://amazon.com', 'amazon'),
+    ('https://nvidia.com', 'nvidia'),
     ('https://facebook.com', 'facebook'),
     ('https://apple.com', 'apple'),
     ('https://github.com', 'github'),
