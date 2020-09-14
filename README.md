@@ -21,16 +21,13 @@ print(chrome.get_title("https://google.com")) # Google
 ```
 
 ## Installing
-1. AWS environment (AWS CLI is required)
-    + `docker run -e AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id) -e AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key) -e AWS_DEFAULT_REGION=$(aws configure get region) umihico/chromelessenv`
-
-2. Local environment
-    + `pip install chromeless`
+  + `docker run -e AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id) -e AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key) -e AWS_DEFAULT_REGION=$(aws configure get region) umihico/chromelessenv`
+  + `pip install chromeless`
 
 That's it! Now run the `example.py` and confirm it works!
 
 ## Tips
-+ **Only one method is attachable.** Solution is wrapping.
++ **Don't call selenium native methods directly.** Solution is wrapping.
 
 ```python
 # BAD EXAMPLE
@@ -44,10 +41,35 @@ def wrapper(self, url):
     return self.title
 
 chrome = Chromeless()
-chrome.attach(wrapper) # You can attach only one method
+chrome.attach(wrapper)
 print(chrome.wrapper("https://google.com")) # prints 'Google'
 print(chrome.wrapper("https://microsoft.com")) # But you can execute as many times as you want.
 print(chrome.wrapper("https://apple.com")) # Arguments are adjustable each time.
+```
+
++ Multiple methods are attachable.
+
+```python
+def login(self):
+    self.get("https://example.com/login")
+    self.find_element_by_id("username").send_keys("umihico")
+    self.find_element_by_id("password").send_keys("password")
+    self.find_element_by_name("submit").click()
+
+def test1(self):
+    self.login()
+    self.get("https://example.com/")
+
+def test2(self):
+    self.login()
+    self.get("https://example.com/logout")
+
+chrome = Chromeless()
+chrome.attach(login) # You can attach multiple methods
+chrome.attach(test1) # It means you can refactor common code
+chrome.attach(test2)
+print(chrome.test1())
+print(chrome.test2())
 ```
 
 + To screenshot

@@ -44,12 +44,13 @@ class ChromelessServer():
         return func
 
     def recieve(self, dumped):
-        name, code, arg, kw, options = loads(dumped)
+        invoked_func_name, codes, arg, kw, options = loads(dumped)
         chrome = self.gen_chrome(options)
-        func = self.parse_code(code, name)
-        setattr(chrome, name, types.MethodType(func, chrome))
+        for name, code in codes.items():
+            func = self.parse_code(code, name)
+            setattr(chrome, name, types.MethodType(func, chrome))
         try:
-            return dumps(getattr(chrome, name)(*arg, **kw))
+            return dumps(getattr(chrome, invoked_func_name)(*arg, **kw))
         except Exception:
             raise
         finally:

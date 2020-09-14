@@ -16,15 +16,22 @@ class Chromeless():
         if function_name == 'chromeless-server-prod' and 'CHROMELESS_SERVER_FUNCTION_NAME' in os.environ:
             function_name = os.environ['CHROMELESS_SERVER_FUNCTION_NAME']
         self.function_name = function_name
+        self.codes = {}
 
     def attach(self, method):
-        self.code = inspect.getsource(method), marshal.dumps(method.__code__)
-        self.name = method.__name__
-        setattr(self, self.name, self.__invoke)
+        self.codes[method.__name__] = inspect.getsource(
+            method), marshal.dumps(method.__code__)
+
+    def __getattr__(self, name):
+        if name in self.codes:
+            self.invoked_func_name = name
+            return self.__invoke
+        raise AttributeError(
+            f"{self.__class__.__name__} object has no attribute {name}")
 
     def __invoke(self, *arg, **kw):
         dumped = dumps(
-            (self.name, self.code, arg, kw, self.options))
+            (self.invoked_func_name, self.codes, arg, kw, self.options))
         if self.function_name == "local":
             method = self.__invoke_local
         elif self.gateway_url is not None:
