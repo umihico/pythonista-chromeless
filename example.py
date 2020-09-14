@@ -53,4 +53,4 @@ def assert_response(title, png, divcnt):
 
 
 if __name__ == '__main__':
-    test_api()
+    test_example()
