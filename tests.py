@@ -24,6 +24,14 @@ def test_example_locally():
     assert_response(title, png, divcnt)
 
 
+def test_example_locally_named_arg():
+    chrome = Chromeless(function_name="local")
+    chrome.attach(example)
+    chrome.attach(second_method)
+    title, png, divcnt = chrome.example(url=demo_url)
+    assert_response(title, png, divcnt)
+
+
 def test_non_toplevel_func():
     def func(self, url):
         self.get(url)
