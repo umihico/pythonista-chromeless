@@ -1,16 +1,7 @@
-import random
 from chromeless import Chromeless
 import os
 
-example_urls_with_title = [
-    ('https://google.com', 'google'),
-    ('https://nvidia.com', 'nvidia'),
-    ('https://facebook.com', 'facebook'),
-    ('https://apple.com', 'apple'),
-    ('https://github.com', 'github'),
-]
-
-demo_url, supposed_title = random.choice(example_urls_with_title)
+demo_url, supposed_title = "https://umihi.co", "umihico"
 
 
 def example(self, url):
