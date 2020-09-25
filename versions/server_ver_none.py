@@ -1,45 +1,11 @@
 import types
 from selenium import webdriver
 from picklelib import loads, dumps  # imports in Dockerfile
-import json
 import marshal
 import textwrap
-from versions import ChromelessServerVerNone
-
-
-def handler(event=None, context=None):
-    if 'dumped' in event:
-        dumped = event['dumped']
-        return invoke(dumped)
-    else:
-        dumped = json.loads(event['body'])['dumped']
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'result': invoke(dumped)}),
-            "headers": {
-                'Content-Type': "application/json",
-                'Access-Control-Allow-Origin': '*',
-            }
-        }
-
-
-def invoke(dumped):
-    arg = loads(dumped)
-    print(arg)
-    required_version = arg['REQUIRED_SERVER_VERSION'] if isinstance(
-        arg, dict) else None
-    ChormelessServerClass = {
-        1: ChromelessServer,  # latest
-        None: ChromelessServerVerNone,
-    }[required_version]
-    if required_version is None:
-        arg = dumps(arg)  # dump again
-    return ChormelessServerClass().recieve(arg)
 
 
 class ChromelessServer():
-    SERVER_VERSION = 1
-
     def gen_chrome(self, options):
         if options is None:
             options = get_default_options()
@@ -60,12 +26,8 @@ class ChromelessServer():
                 marshal.loads(marshaled), globals(), name)
         return func
 
-    def recieve(self, arguments):
-        invoked_func_name = arguments["invoked_func_name"]
-        codes = arguments["codes"]
-        arg = arguments["arg"]
-        kw = arguments["kw"]
-        options = arguments["options"]
+    def recieve(self, dumped):
+        invoked_func_name, codes, arg, kw, options = loads(dumped)
         chrome = self.gen_chrome(options)
         for name, code in codes.items():
             func = self.parse_code(code, name)

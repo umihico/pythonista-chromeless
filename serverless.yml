@@ -12,6 +12,7 @@ package:
   include:
     - server.py
     - picklelib.py
+    - versions/*.py
   exclude:
     - "**"
 

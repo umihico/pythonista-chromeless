@@ -9,6 +9,8 @@ import os
 
 
 class Chromeless():
+    REQUIRED_SERVER_VERSION = 1
+
     def __init__(self, gateway_url=None, gateway_apikey=None, chrome_options=None, function_name='chromeless-server-prod'):
         self.gateway_url = gateway_url
         self.gateway_apikey = gateway_apikey
@@ -30,8 +32,14 @@ class Chromeless():
             f"{self.__class__.__name__} object has no attribute {name}")
 
     def __invoke(self, *arg, **kw):
-        dumped = dumps(
-            (self.invoked_func_name, self.codes, arg, kw, self.options))
+        dumped = dumps({
+            "invoked_func_name": self.invoked_func_name,
+            "codes": self.codes,
+            "arg": arg,
+            "kw": kw,
+            "options": self.options,
+            "REQUIRED_SERVER_VERSION": self.REQUIRED_SERVER_VERSION,
+        })
         if self.function_name == "local":
             method = self.__invoke_local
         elif self.gateway_url is not None:
@@ -51,8 +59,8 @@ class Chromeless():
                              json={'dumped': dumped}).json()['result']
 
     def __invoke_local(self, dumped):
-        from server import ChromelessServer
-        return ChromelessServer().recieve(dumped)
+        from server import invoke
+        return invoke(dumped)
 
     def __invoke_lambda(self, dumped):
         client = boto3.client('lambda')
