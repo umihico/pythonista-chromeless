@@ -1,47 +1,12 @@
 import types
 from selenium import webdriver
-from picklelib import loads, dumps  # imports in Dockerfile
-import json
+from picklelib import dumps  # imports in Dockerfile
 import marshal
 import textwrap
-from versions import ChromelessServerVerNone
-from versions import ChromelessServerVer1
-import traceback
-
-
-def handler(event=None, context=None):
-    if 'dumped' in event:
-        dumped = event['dumped']
-        return invoke(dumped)
-    else:
-        dumped = json.loads(event['body'])['dumped']
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'result': invoke(dumped)}),
-            "headers": {
-                'Content-Type': "application/json",
-                'Access-Control-Allow-Origin': '*',
-            }
-        }
-
-
-def invoke(dumped):
-    arg = loads(dumped)
-    print(arg)
-    required_version = arg['REQUIRED_SERVER_VERSION'] if isinstance(
-        arg, dict) else None
-    ChormelessServerClass = {
-        2: ChromelessServer,  # latest
-        1: ChromelessServerVer1,
-        None: ChromelessServerVerNone,
-    }[required_version]
-    if required_version is None:
-        arg = dumps(arg)  # dump again
-    return ChormelessServerClass().recieve(arg)
 
 
 class ChromelessServer():
-    SERVER_VERSION = 2
+    SERVER_VERSION = 1
 
     def gen_chrome(self, options):
         if options is None:
@@ -73,19 +38,12 @@ class ChromelessServer():
         for name, code in codes.items():
             func = self.parse_code(code, name)
             setattr(chrome, name, types.MethodType(func, chrome))
-        metadata = {'status': 'success'}
         try:
-            response = getattr(chrome, invoked_func_name)(*arg, **kw)
+            return dumps(getattr(chrome, invoked_func_name)(*arg, **kw))
         except Exception:
-            metadata['status'] = 'error'
-            response = "\n".join([
-                "\n============== CHROMELESS TRACEBACK IN LAMBDA START ==============",
-                traceback.format_exc(),
-                "============== CHROMELESS TRACEBACK IN LAMBDA END ================\n",
-            ])
+            raise
         finally:
             chrome.quit()
-        return dumps((response, metadata))
 
 
 def get_default_options():

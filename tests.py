@@ -41,5 +41,11 @@ def test_non_toplevel_func():
     assert supposed_title in chrome.func(demo_url).lower()
 
 
+def test_error():
+    chrome = Chromeless(function_name="local")
+    from example import test_error
+    test_error(chrome)
+
+
 if __name__ == '__main__':
-    test_non_toplevel_func()
+    test_error()

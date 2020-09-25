@@ -9,7 +9,7 @@ import os
 
 
 class Chromeless():
-    REQUIRED_SERVER_VERSION = 1
+    REQUIRED_SERVER_VERSION = 2
 
     def __init__(self, gateway_url=None, gateway_apikey=None, chrome_options=None, function_name='chromeless-server-prod'):
         self.gateway_url = gateway_url
@@ -46,12 +46,11 @@ class Chromeless():
             method = self.__invoke_api
         else:
             method = self.__invoke_lambda
-        response = method(dumped)
-        try:
-            return loads(response)
-        except Exception:
-            print(response, file=sys.stderr)
-            raise
+        response, metadata = loads(method(dumped))
+        if metadata['status'] == "error":
+            raise Exception(response)
+        else:
+            return response
 
     def __invoke_api(self, dumped):
         headers = {'x-api-key': self.gateway_apikey}
