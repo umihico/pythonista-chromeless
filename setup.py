@@ -1,20 +1,5 @@
-import requests
 import setuptools
-import os
-
-
-def get_incremented_version():
-    stage = os.getenv('STAGE', 'test')
-    host = 'pypi.org' if stage == 'prod' else 'test.pypi.org'
-    try:
-        json = requests.get(f'https://{host}/pypi/chromeless/json').json()
-        version = json['info']['version']
-    except Exception:  # first deploy
-        version = '0.0.0'
-    x100, x10, x = map(int, version.split('.'))
-    new_version = ".".join(str(x100 * 100 + x10 * 10 + x + 1).zfill(3))
-    return new_version
-
+from __version__ import __version__
 
 requirements = [
     'requests',
@@ -25,7 +10,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 setuptools.setup(
     name="chromeless",
-    version=get_incremented_version(),
+    version=__version__,
     author="umihico",
     author_email="umihico@users.noreply.github.com",
     description="Serverless selenium which dynamically execute any given code.",

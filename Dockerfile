@@ -36,6 +36,7 @@ COPY Makefile /app/
 COPY README.md /app/
 RUN mkdir -p /app/chromeless
 COPY chromeless/*.py /app/chromeless/
+COPY __version__.py /app/chromeless/
 COPY serverless.yml /app/
 COPY *.py /app/
 COPY chromeless/picklelib.py /app/
