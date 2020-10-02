@@ -9,6 +9,7 @@ RUN pip install Pillow
 
 RUN pip install chromeless==0.2.9
 RUN pip install chromeless==0.3.0
+RUN pip install chromeless==0.3.6
 
 COPY example.py .
 COPY pip_install.py .
