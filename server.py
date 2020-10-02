@@ -101,5 +101,7 @@ def get_default_options():
     options.add_argument("--log-level=0")
     options.add_argument("--single-process")
     options.add_argument("--ignore-certificate-errors")
-    options.add_argument("--homedir=/tmp")
+    import tempfile
+    dirname = tempfile.mkdtemp()  # e.x. /tmp/tmpwc6a08sz
+    options.add_argument("--homedir=" + dirname)
     return options

@@ -70,6 +70,8 @@ test_compatibility:
 	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
 	pip install 'chromeless==0.3.0'
 	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
+	pip install 'chromeless==0.3.6'
+	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
 
 test_stg:
 	$(eval API_URL := $(shell sls info -v | grep ServiceEndpoint | sed s/ServiceEndpoint\:\ //g))
