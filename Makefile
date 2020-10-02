@@ -1,7 +1,10 @@
-deploy:
-	python define_version.py
+build:
 	docker build -t umihico/chromelessenv .
 	docker build -t umihico/chromelesstest -f Dockerfile_test .
+
+deploy:
+	python define_version.py
+	@make build
 	docker run \
 		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
 		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
@@ -23,8 +26,7 @@ deploy:
 		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
 		umihico/chromelesstest make test_stg
 	STAGE=prod python define_version.py
-	docker build -t umihico/chromelessenv .
-	docker build -t umihico/chromelesstest -f Dockerfile_test .
+	@make build
 	docker run \
 		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
 		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
