@@ -104,4 +104,7 @@ def get_default_options():
     import tempfile
     dirname = tempfile.mkdtemp()  # e.x. /tmp/tmpwc6a08sz
     options.add_argument("--homedir=" + dirname)
+    options.add_argument(f"--user-data-dir={dirname}/user-data")
+    options.add_argument(f"--data-path={dirname}/data-path")
+    options.add_argument(f"--disk-cache-dir={dirname}/cache-dir")
     return options
