@@ -6,13 +6,16 @@ def test_example_normally():
     from selenium import webdriver
     from server import get_default_options
     import types
-    options = get_default_options()
-    options.binary_location = "/opt/python/bin/headless-chromium"
-    chrome = webdriver.Chrome(
-        "/opt/python/bin/chromedriver", options=options)
-    setattr(chrome, "example", types.MethodType(example, chrome))
-    setattr(chrome, "second_method", types.MethodType(second_method, chrome))
-    title, png, divcnt = chrome.example(demo_url)
+    from tempfile import TemporaryDirectory
+    with TemporaryDirectory() as dirname:  # e.x. /tmp/tmpwc6a08sz
+        options = get_default_options(dirname)
+        options.binary_location = "/opt/python/bin/headless-chromium"
+        chrome = webdriver.Chrome(
+            "/opt/python/bin/chromedriver", options=options)
+        setattr(chrome, "example", types.MethodType(example, chrome))
+        setattr(chrome, "second_method",
+                types.MethodType(second_method, chrome))
+        title, png, divcnt = chrome.example(demo_url)
     assert_response(title, png, divcnt)
 
 

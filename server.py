@@ -7,6 +7,7 @@ import textwrap
 from versions import ChromelessServerVerNone
 from versions import ChromelessServerVer1
 import traceback
+from tempfile import TemporaryDirectory
 
 
 def handler(event=None, context=None):
@@ -43,9 +44,9 @@ def invoke(dumped):
 class ChromelessServer():
     SERVER_VERSION = 2
 
-    def gen_chrome(self, options):
+    def gen_chrome(self, options, dirname):
         if options is None:
-            options = get_default_options()
+            options = get_default_options(dirname)
         options.binary_location = "/opt/python/bin/headless-chromium"
         return webdriver.Chrome(
             "/opt/python/bin/chromedriver", options=options)
@@ -64,12 +65,16 @@ class ChromelessServer():
         return func
 
     def recieve(self, arguments):
+        with TemporaryDirectory() as dirname:  # e.x. /tmp/tmpwc6a08sz
+            return self._recieve(arguments, dirname)
+
+    def _recieve(self, arguments, dirname):
         invoked_func_name = arguments["invoked_func_name"]
         codes = arguments["codes"]
         arg = arguments["arg"]
         kw = arguments["kw"]
         options = arguments["options"]
-        chrome = self.gen_chrome(options)
+        chrome = self.gen_chrome(options, dirname)
         for name, code in codes.items():
             func = self.parse_code(code, name)
             setattr(chrome, name, types.MethodType(func, chrome))
@@ -88,7 +93,7 @@ class ChromelessServer():
         return dumps((response, metadata))
 
 
-def get_default_options():
+def get_default_options(dirname):
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
@@ -101,8 +106,6 @@ def get_default_options():
     options.add_argument("--log-level=0")
     options.add_argument("--single-process")
     options.add_argument("--ignore-certificate-errors")
-    import tempfile
-    dirname = tempfile.mkdtemp()  # e.x. /tmp/tmpwc6a08sz
     options.add_argument("--homedir=" + dirname)
     options.add_argument(f"--user-data-dir={dirname}/user-data")
     options.add_argument(f"--data-path={dirname}/data-path")
