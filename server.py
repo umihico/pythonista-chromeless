@@ -106,6 +106,7 @@ def get_default_options(dirname):
     options.add_argument("--log-level=0")
     options.add_argument("--single-process")
     options.add_argument("--ignore-certificate-errors")
+    options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--homedir=" + dirname)
     options.add_argument(f"--user-data-dir={dirname}/user-data")
     options.add_argument(f"--data-path={dirname}/data-path")
