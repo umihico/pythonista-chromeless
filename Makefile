@@ -2,6 +2,13 @@ build:
 	docker build -t umihico/chromelessenv .
 	docker build -t umihico/chromelesstest -f Dockerfile_test .
 
+bash:
+	docker run --rm -it \
+		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
+		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
+		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
+		umihico/chromelessenv bash
+
 deploy:
 	python define_version.py
 	@make build
