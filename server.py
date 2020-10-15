@@ -1,3 +1,5 @@
+import os
+import shutil
 import types
 from selenium import webdriver
 from picklelib import loads, dumps  # imports in Dockerfile
@@ -10,7 +12,17 @@ import traceback
 from tempfile import TemporaryDirectory
 
 
+def remove_tmpfiles():
+    for filename in os.listdir('/tmp'):
+        file_path = os.path.join('/tmp', filename)
+        if os.path.isfile(file_path) or os.path.islink(file_path):
+            os.unlink(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
+
 def handler(event=None, context=None):
+    remove_tmpfiles()
     if 'dumped' in event:
         dumped = event['dumped']
         return invoke(dumped)
