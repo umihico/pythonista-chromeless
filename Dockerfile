@@ -2,13 +2,13 @@ FROM lambci/lambda:build-python3.7
 
 RUN mkdir -p /app
 RUN mkdir -p /opt/python/bin/
+RUN mkdir -p /tmp/downloads
 
 WORKDIR /opt
-RUN curl -SL https://chromedriver.storage.googleapis.com/2.37/chromedriver_linux64.zip > chromedriver.zip
-RUN unzip chromedriver.zip -d python/bin/
-RUN curl -SL https://github.com/adieuadieu/serverless-chrome/releases/download/v1.0.0-37/stable-headless-chromium-amazonlinux-2017-03.zip > headless-chromium.zip
-RUN unzip headless-chromium.zip -d python/bin/
-RUN rm -rf chromedriver.zip headless-chromium.zip
+RUN curl -SL https://chromedriver.storage.googleapis.com/2.37/chromedriver_linux64.zip > /tmp/downloads/chromedriver.zip
+RUN unzip /tmp/downloads/chromedriver.zip -d python/bin/
+RUN curl -SL https://github.com/adieuadieu/serverless-chrome/releases/download/v1.0.0-37/stable-headless-chromium-amazonlinux-2017-03.zip > /tmp/downloads/headless-chromium.zip
+RUN unzip /tmp/downloads/headless-chromium.zip -d python/bin/
 
 RUN yum install -y gcc-c++ make
 RUN curl -sL https://rpm.nodesource.com/setup_14.x | bash -
@@ -42,5 +42,7 @@ COPY versions/*.py /app/versions/
 COPY serverless.yml /app/
 COPY *.py /app/
 COPY chromeless/picklelib.py /app/
+
+RUN rm -rf /tmp/downloads
 
 CMD ["sls", "deploy"]
