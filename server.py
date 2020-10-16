@@ -10,6 +10,8 @@ from versions import ChromelessServerVerNone
 from versions import ChromelessServerVer1
 import traceback
 from tempfile import TemporaryDirectory
+import os
+os.environ['FONTCONFIG_PATH'] = '/opt/fonts'
 
 
 def remove_tmpfiles():

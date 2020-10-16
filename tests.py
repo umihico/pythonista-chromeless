@@ -50,5 +50,17 @@ def test_error():
     test_error(chrome)
 
 
+def language_test():
+    chrome = Chromeless()
+
+    def wrapper(self):
+        self.get("http://example.selenium.jp/reserveApp/")
+        return self.get_screenshot_as_png()
+    chrome.attach(wrapper)
+    png = chrome.wrapper()
+    with open('./jpn.png', 'wb') as f:
+        f.write(png)
+
+
 if __name__ == '__main__':
-    test_error()
+    language_test()

@@ -18,8 +18,6 @@ RUN npm install -g serverless
 RUN pip install selenium -t python
 RUN zip -r /app/layer.zip python
 
-WORKDIR /app
-
 RUN pip install awscli
 RUN pip install selenium
 RUN pip install boto3
@@ -30,6 +28,17 @@ RUN pip install setuptools
 RUN pip install wheel
 RUN pip install twine
 
+RUN mkdir -p /opt/fonts
+RUN mkdir -p /tmp/downloads/fonts
+# Download your language
+RUN curl -SL https://fonts.google.com/download?family=Noto%20Sans%20JP > /tmp/downloads/Noto_Sans_JP.zip
+RUN unzip /tmp/downloads/Noto*.zip -d /tmp/downloads/fonts/
+# Copy font files here
+RUN mv /tmp/downloads/fonts/NotoSansJP-Regular.otf fonts/
+COPY fonts.conf fonts/
+RUN zip -r /app/fontlayer.zip fonts
+
+WORKDIR /app
 COPY Dockerfile /app/
 COPY LICENSE /app/
 COPY Makefile /app/

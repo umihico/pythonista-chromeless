@@ -24,6 +24,7 @@ functions:
     memorySize: 1024
     layers:
       - { Ref: SeleniumLambdaLayer }
+      - { Ref: FontlayerLambdaLayer }
     events:
       - http:
           path: /
@@ -37,3 +38,10 @@ layers:
       - python3.7
     package:
       artifact: layer.zip
+
+  fontlayer:
+    name: chromeless-server-selenium-fontlayer-${self:provider.stage}
+    compatibleRuntimes:
+      - python3.7
+    package:
+      artifact: fontlayer.zip
