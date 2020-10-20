@@ -24,9 +24,6 @@ RUN pip install boto3
 RUN pip install -U pytest
 RUN pip install Pillow
 RUN pip install requests
-RUN pip install setuptools
-RUN pip install wheel
-RUN pip install twine
 
 RUN mkdir -p /opt/fonts
 RUN mkdir -p /tmp/downloads/fonts
@@ -45,7 +42,6 @@ COPY Makefile /app/
 COPY README.md /app/
 RUN mkdir -p /app/chromeless
 COPY chromeless/*.py /app/chromeless/
-COPY __version__.py /app/chromeless/
 RUN mkdir -p /app/versions
 COPY versions/*.py /app/versions/
 COPY serverless.yml /app/
