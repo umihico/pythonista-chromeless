@@ -12,7 +12,7 @@ RUN pip install chromeless==0.3.0
 RUN pip install chromeless==0.3.6
 
 COPY example.py .
-COPY pip_install.py .
 COPY chromeless/__version__.py .
+COPY test/pipinstall.sh .
 COPY Makefile .
 COPY serverless.yml .

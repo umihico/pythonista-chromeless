@@ -46,6 +46,7 @@ RUN mkdir -p /app/versions
 COPY versions/*.py /app/versions/
 COPY serverless.yml /app/
 COPY *.py /app/
+COPY test/tests.py /app/
 COPY chromeless/picklelib.py /app/
 
 RUN rm -rf /tmp/downloads

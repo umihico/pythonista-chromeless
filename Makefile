@@ -1,6 +1,8 @@
 build:
 	docker build -t umihico/chromelessenv .
-	docker build -t umihico/chromelesstest -f Dockerfile_test .
+
+build_test:
+	docker build -t umihico/chromelesstest -f test/Dockerfile .
 
 bash:
 	docker run --rm -it \
@@ -10,30 +12,15 @@ bash:
 		umihico/chromelessenv bash
 
 release:
+	@make build
+	@make test_local
+	@make deploy
 	@make pypi_stg
-	@make build
-	docker run \
-		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
-		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
-		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
-		umihico/chromelessenv make sls
-	docker run \
-		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
-		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
-		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
-		umihico/chromelesstest make test_compatibility
-	docker run \
-		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
-		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
-		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
-		umihico/chromelesstest make test_stg
+	@make build_test
+	@make test_stg
 	@make pypi_prod
-	@make build
-	docker run \
-		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
-		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
-		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
-		umihico/chromelesstest make test_prod
+	@make build_test
+	@make test_prod
 	docker push umihico/chromelessenv:latest # docker.io/umihico/chromelessenv
 
 deploy:
@@ -43,40 +30,36 @@ deploy:
 		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
 		umihico/chromelessenv sls deploy
 
-sls:
-	# test locally
-	pytest tests.py
+test_local:
+	docker run --rm -it \
+		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
+		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
+		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
+		umihico/chromelessenv pytest tests.py
 
-	# deploy sls
-	sls deploy
+test_stg:
+	@make test_common STAGE=stg
+test_prod:
+	@make test_common STAGE=prod
+
+test_common:
+	docker run \
+		-e AWS_ACCESS_KEY_ID=$(shell aws configure get aws_access_key_id) \
+		-e AWS_SECRET_ACCESS_KEY=$(shell aws configure get aws_secret_access_key) \
+		-e AWS_DEFAULT_REGION=$(shell aws configure get region) \
+		umihico/chromelesstest make _test_common
+
+_test_common:
+	sh pipinstall.sh
 	$(eval API_URL := $(shell sls info -v | grep ServiceEndpoint | sed s/ServiceEndpoint\:\ //g))
 	$(eval STAGE := $(shell sls info -v | grep stage | sed s/stage\:\ //g))
 	$(eval API_KEY := $(shell sls info -v | grep chromeless-apikey | sed s/\ chromeless-apikey-$(STAGE)\:\ //g))
 	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
-
-test_compatibility:
-	$(eval API_URL := $(shell sls info -v | grep ServiceEndpoint | sed s/ServiceEndpoint\:\ //g))
-	$(eval STAGE := $(shell sls info -v | grep stage | sed s/stage\:\ //g))
-	$(eval API_KEY := $(shell sls info -v | grep chromeless-apikey | sed s/\ chromeless-apikey-$(STAGE)\:\ //g))
 	pip install 'chromeless==0.2.9'
 	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
 	pip install 'chromeless==0.3.0'
 	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
 	pip install 'chromeless==0.3.6'
-	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
-
-test_stg:
-	$(eval API_URL := $(shell sls info -v | grep ServiceEndpoint | sed s/ServiceEndpoint\:\ //g))
-	$(eval STAGE := $(shell sls info -v | grep stage | sed s/stage\:\ //g))
-	$(eval API_KEY := $(shell sls info -v | grep chromeless-apikey | sed s/\ chromeless-apikey-$(STAGE)\:\ //g))
-	python pip_install.py stg
-	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
-
-test_prod:
-	$(eval API_URL := $(shell sls info -v | grep ServiceEndpoint | sed s/ServiceEndpoint\:\ //g))
-	$(eval STAGE := $(shell sls info -v | grep stage | sed s/stage\:\ //g))
-	$(eval API_KEY := $(shell sls info -v | grep chromeless-apikey | sed s/\ chromeless-apikey-$(STAGE)\:\ //g))
-	python pip_install.py prod
 	API_URL=$(API_URL) API_KEY=$(API_KEY) pytest example.py
 
 pypi_common:
