@@ -4,44 +4,23 @@ provider:
   name: aws
   runtime: python3.7
   stage: ${opt:stage, 'prod'}
-  region: ${env:AWS_DEFAULT_REGION}
+  region: ${opt:region}
   apiKeys:
     - chromeless-apikey-${self:provider.stage}
-
-package:
-  include:
-    - server.py
-    - picklelib.py
-    - versions/*.py
-  exclude:
-    - "**"
+  ecr:
+    images:
+      chromeless:
+        path: ./
 
 functions:
   server:
     name: chromeless-server-${self:provider.stage}
-    handler: server.handler
     timeout: 900
     memorySize: 1024
-    layers:
-      - { Ref: SeleniumLambdaLayer }
-      - { Ref: FontlayerLambdaLayer }
+    image:
+      name: chromeless
     events:
       - http:
           path: /
           method: post
           private: true
-
-layers:
-  selenium:
-    name: chromeless-server-selenium-layer-${self:provider.stage}
-    compatibleRuntimes:
-      - python3.7
-    package:
-      artifact: layer.zip
-
-  fontlayer:
-    name: chromeless-server-selenium-fontlayer-${self:provider.stage}
-    compatibleRuntimes:
-      - python3.7
-    package:
-      artifact: fontlayer.zip

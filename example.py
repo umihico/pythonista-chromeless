@@ -1,7 +1,7 @@
 from chromeless import Chromeless
 import os
 
-demo_url, supposed_title = "https://umihi.co", "umihico"
+demo_url, supposed_title = "https://example.com/", "example domain"
 
 
 def example(self, url):
@@ -26,7 +26,7 @@ def test_example():
 
 
 def test_api():
-    chrome = Chromeless(os.environ['API_URL'], os.environ['API_KEY'])
+    chrome = Chromeless(os.getenv('API_URL', None), os.getenv('API_KEY', None))
     chrome.attach(example)
     chrome.attach(second_method)
     title, png, divcnt = chrome.example(demo_url)

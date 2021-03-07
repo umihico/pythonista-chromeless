@@ -1,0 +1,6 @@
+pytest
+selenium
+requests
+Pillow
+boto3
+pyocr

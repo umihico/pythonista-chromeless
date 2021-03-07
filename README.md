@@ -21,10 +21,12 @@ print(chrome.get_title("https://google.com")) # Returns Google
 ```
 
 ## Installing
-  + `docker run -e AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id) -e AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key) -e AWS_DEFAULT_REGION=$(aws configure get region) umihico/chromelessenv`
+
+  + `git --depth 1 clone https://github.com/umihico/pythonista-chromeless.git chromeless && cd $_`
+  + `sls deploy --region $(aws configure get region)`
   + `pip install chromeless`
 
-That's it! Now run the `example.py` and confirm that it works!
+That's it! Now run the `example.py` and confirm your selenium works in lambda functions!
 
 ## Tips
 + **Don't call selenium native methods directly.** Solution is wrapping.
