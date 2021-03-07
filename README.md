@@ -23,7 +23,7 @@ print(chrome.get_title("https://google.com")) # Returns Google
 ## Installing
 
   + `git clone --depth 1 https://github.com/umihico/pythonista-chromeless.git chromeless && cd $_`
-  + `sls deploy --region $(aws configure get region)`
+  + `sls deploy --region YOUR_REGION`
   + `pip install chromeless`
 
 That's it! Now run the `example.py` and confirm your selenium works in lambda functions!
