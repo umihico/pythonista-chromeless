@@ -61,9 +61,9 @@ class ChromelessServer():
     def gen_chrome(self, options, dirname):
         if options is None:
             options = get_default_options(dirname)
-        options.binary_location = "/opt/python/bin/headless-chromium"
+        options.binary_location = "/opt/bin/headless-chromium"
         return webdriver.Chrome(
-            "/opt/python/bin/chromedriver", options=options)
+            "/opt/bin/chromedriver", options=options)
 
     def parse_code(self, code, name):
         inspected, marshaled = code

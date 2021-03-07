@@ -58,8 +58,9 @@ class Chromeless():
                              json={'dumped': dumped}).json()['result']
 
     def __invoke_local(self, dumped):
-        from server import invoke
-        return invoke(dumped)
+        response = requests.post(
+            "http://chromeless:8080/2015-03-31/functions/function/invocations", json={'dumped': dumped})
+        return response.text
 
     def __invoke_lambda(self, dumped):
         client = boto3.client('lambda')
