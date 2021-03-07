@@ -22,7 +22,7 @@ print(chrome.get_title("https://google.com")) # Returns Google
 
 ## Installing
 
-  + `git --depth 1 clone https://github.com/umihico/pythonista-chromeless.git chromeless && cd $_`
+  + `git clone --depth 1 https://github.com/umihico/pythonista-chromeless.git chromeless && cd $_`
   + `sls deploy --region $(aws configure get region)`
   + `pip install chromeless`
 
