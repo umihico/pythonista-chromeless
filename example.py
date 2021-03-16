@@ -30,6 +30,7 @@ def test_api():
     chrome.attach(example)
     chrome.attach(second_method)
     title, png, divcnt = chrome.example(demo_url)
+    print(title, demo_url)
     assert_response(title, png, divcnt)
 
 
