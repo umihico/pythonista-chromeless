@@ -1,0 +1,163 @@
+version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@2.0.6
+  serverless: circleci/serverless-framework@1.0.1
+
+aliases:
+  - &dev_conditions
+    filters:
+      branches:
+        only:
+          - development
+          - master
+  - &master_conditions
+    filters:
+      branches:
+        only:
+          - master
+    requires:
+      - pytest-dev
+  - &base_image
+    docker:
+      - image: docker:17.05.0-ce-git
+
+jobs:
+  pytest:
+    parameters:
+      function:
+        type: string
+        default: local
+      api-url:
+        type: string
+        default: "none"
+      api-key:
+        type: string
+        default: "none"
+    <<: *base_image
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: docker build -t chromeless .
+      - run: docker build -f pytest/Dockerfile -t pytest .
+      - run: echo CHROMELESS_SERVER_FUNCTION_NAME=<< parameters.function >> > .env
+      - when:
+          condition:
+            equal: [local, << parameters.function >>]
+          steps:
+            - run:
+                name: Run local tests
+                command: |
+                  docker rm -f chromeless || true
+                  docker network rm chromeless-network || true
+                  docker network create chromeless-network
+                  docker run --network chromeless-network --name chromeless -d chromeless
+                  docker run --network chromeless-network --env-file .env -w /latest pytest
+                  docker run --network chromeless-network --env-file .env -w /0.4.8 pytest
+                  docker rm -f chromeless
+      - unless:
+          condition:
+            equal: [local, << parameters.function >>]
+          steps:
+            - run:
+                name: Run remote lambda function tests
+                command: |
+                  env >> .env # AWS credentials
+                  tee -a .env \<< END
+                  API_URL=${<< parameters.api-url >>}
+                  API_KEY=${<< parameters.api-key >>}
+                  END
+                  docker run --env-file .env -w /latest pytest
+                  docker run --env-file .env -w /0.2.9 pytest
+                  docker run --env-file .env -w /0.3.0 pytest
+                  docker run --env-file .env -w /0.3.6 pytest
+                  docker run --env-file .env -w /0.4.7 pytest
+                  docker run --env-file .env -w /0.4.8 pytest
+  sls:
+    parameters:
+      stage:
+        type: string
+    executor: serverless/default
+    steps:
+      - checkout
+      - aws-cli/setup
+      - serverless/setup
+      - setup_remote_docker
+      - run: sudo chown $(whoami):$(whoami) /run/docker-temp.sock
+      - run: sls deploy --stage << parameters.stage >> --region $AWS_REGION --conceal | grep -v "execute-api"
+
+  pypi:
+    parameters:
+      stage:
+        type: string
+      repository:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+    <<: *base_image
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: docker build . -t pypienv -f pypi/Dockerfile
+      - run: touch chromeless/__version__.py
+      - run:
+          name: publish pypi package [<< parameters.stage >>]
+          command: |
+            env > .env
+            tee -a .env \<< END
+            PKG_NAME=chromeless
+            DIR_NAME=chromeless
+            PYPI_USERNAME=${<< parameters.username >>}
+            PYPI_PASSWORD=${<< parameters.password >>}
+            REPOSITORY=<< parameters.repository >>
+            STAGE=<< parameters.stage >>
+            END
+            docker run --env-file .env pypienv
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - pytest:
+          name: "pytest-local"
+          <<: *dev_conditions
+      - sls:
+          name: "sls-dev"
+          stage: "dev"
+          <<: *dev_conditions
+      - pypi:
+          name: "pypi-dev"
+          stage: "stg"
+          repository: "testpypi"
+          username: PYPI_USERNAME_DEV
+          password: PYPI_PASSWORD_DEV
+          <<: *dev_conditions
+      - pytest:
+          name: "pytest-dev"
+          function: "chromeless-server-dev"
+          api-url: API_URL_DEV
+          api-key: API_KEY_DEV
+          requires:
+            - pypi-dev
+            - sls-dev
+      - sls:
+          name: "sls-prod"
+          stage: "prod"
+          <<: *master_conditions
+      - pypi:
+          name: "pypi-prod"
+          stage: "prod"
+          repository: "pypi"
+          username: PYPI_USERNAME_PROD
+          password: PYPI_PASSWORD_PROD
+          <<: *master_conditions
+      - pytest:
+          name: "pytest-prod"
+          function: "chromeless-server-prod"
+          api-url: API_URL_PROD
+          api-key: API_KEY_PROD
+          requires:
+            - pypi-prod
+            - sls-prod
