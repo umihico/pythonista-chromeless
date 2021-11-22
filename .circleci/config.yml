@@ -20,7 +20,7 @@ aliases:
       - pytest-dev
   - &base_image
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: cimg/base:2021.04
 
 jobs:
   pytest:
