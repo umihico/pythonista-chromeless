@@ -83,7 +83,12 @@ jobs:
       - aws-cli/setup
       - serverless/setup
       - setup_remote_docker
-      - run: sudo chown $(whoami):$(whoami) /run/docker-temp.sock
+      - run:
+          name: local-fix
+          command: |
+            if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
+              sudo chown $(whoami):$(whoami) /run/docker-temp.sock
+            fi
       - run: sls deploy --stage << parameters.stage >> --region $AWS_REGION --conceal | grep -v "execute-api"
 
   pypi:
