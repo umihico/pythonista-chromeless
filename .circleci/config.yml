@@ -20,33 +20,33 @@ aliases:
       - pytest-dev
   - &base_image
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: cimg/base:2021.04
+  - &fix_docker
+    run:
+      name: fix-docker
+      command: |
+        if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
+          sudo chown $(whoami):$(whoami) /run/docker-temp.sock
+        fi
 
 jobs:
   pytest:
     parameters:
-      function:
+      stage:
         type: string
-        default: local
-      api-url:
-        type: string
-        default: "none"
-      api-key:
-        type: string
-        default: "none"
     <<: *base_image
     steps:
       - checkout
       - setup_remote_docker
       - run: docker build -t chromeless .
       - run: docker build -f pytest/Dockerfile -t pytest .
-      - run: echo CHROMELESS_SERVER_FUNCTION_NAME=<< parameters.function >> > .env
       - when:
           condition:
-            equal: [local, << parameters.function >>]
+            equal: [local, << parameters.stage >>]
           steps:
+            - run: echo CHROMELESS_SERVER_FUNCTION_NAME=local > .env
             - run:
-                name: Run local tests
+                name: Run tests [<< parameters.stage >>]
                 command: |
                   docker rm -f chromeless || true
                   docker network rm chromeless-network || true
@@ -57,15 +57,17 @@ jobs:
                   docker rm -f chromeless
       - unless:
           condition:
-            equal: [local, << parameters.function >>]
+            equal: [local, << parameters.stage >>]
           steps:
+            - aws-cli/setup
             - run:
-                name: Run remote lambda function tests
+                name: Run remote tests [<< parameters.stage >>]
                 command: |
                   env >> .env # AWS credentials
                   tee -a .env \<< END
-                  API_URL=${<< parameters.api-url >>}
-                  API_KEY=${<< parameters.api-key >>}
+                  CHROMELESS_SERVER_FUNCTION_NAME=chromeless-server-<< parameters.stage >>
+                  API_URL=$(aws cloudformation describe-stacks --stack-name chromeless-<< parameters.stage >> --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text)
+                  API_KEY=$(aws apigateway get-api-keys --query 'items[?name==`chromeless-apikey-<< parameters.stage >>`].value' --include-values --output text)
                   END
                   docker run --env-file .env -w /latest pytest
                   docker run --env-file .env -w /0.2.9 pytest
@@ -83,12 +85,7 @@ jobs:
       - aws-cli/setup
       - serverless/setup
       - setup_remote_docker
-      - run:
-          name: local-fix
-          command: |
-            if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
-              sudo chown $(whoami):$(whoami) /run/docker-temp.sock
-            fi
+      - <<: *fix_docker
       - run: sls deploy --stage << parameters.stage >> --region $AWS_REGION --conceal | grep -v "execute-api"
 
   pypi:
@@ -127,6 +124,7 @@ workflows:
     jobs:
       - pytest:
           name: "pytest-local"
+          stage: "local"
           <<: *dev_conditions
       - sls:
           name: "sls-dev"
@@ -141,9 +139,7 @@ workflows:
           <<: *dev_conditions
       - pytest:
           name: "pytest-dev"
-          function: "chromeless-server-dev"
-          api-url: API_URL_DEV
-          api-key: API_KEY_DEV
+          stage: "dev"
           requires:
             - pypi-dev
             - sls-dev
@@ -160,9 +156,7 @@ workflows:
           <<: *master_conditions
       - pytest:
           name: "pytest-prod"
-          function: "chromeless-server-prod"
-          api-url: API_URL_PROD
-          api-key: API_KEY_PROD
+          stage: "prod"
           requires:
             - pypi-prod
             - sls-prod

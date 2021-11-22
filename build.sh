@@ -17,21 +17,7 @@ EOF
 
 circleci local execute --job sls-dev $(cat .env)
 circleci local execute --job pypi-dev $(cat .env)
-
-STAGE=dev
-cat <<EOF >> .env
--e API_URL_DEV=$(aws cloudformation describe-stacks --stack-name chromeless-$STAGE --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text)
--e API_KEY_DEV=$(aws apigateway get-api-keys --query 'items[?name==`chromeless-apikey-'$STAGE'`].value' --include-values --output text)
-EOF
-
 circleci local execute --job pytest-dev $(cat .env)
 circleci local execute --job sls-prod $(cat .env)
 circleci local execute --job pypi-prod $(cat .env)
-
-STAGE=prod
-cat <<EOF >> .env
--e API_URL_PROD=$(aws cloudformation describe-stacks --stack-name chromeless-$STAGE --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text)
--e API_KEY_PROD=$(aws apigateway get-api-keys --query 'items[?name==`chromeless-apikey-'$STAGE'`].value' --include-values --output text)
-EOF
-
 circleci local execute --job pytest-prod $(cat .env)
