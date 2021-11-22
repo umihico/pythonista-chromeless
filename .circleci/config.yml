@@ -64,7 +64,7 @@ jobs:
                 name: Run remote tests [<< parameters.stage >>]
                 command: |
                   env >> .env # AWS credentials
-                  tee -a .env \<< END
+                  tee -a .env \<< END >/dev/null
                   CHROMELESS_SERVER_FUNCTION_NAME=chromeless-server-<< parameters.stage >>
                   API_URL=$(aws cloudformation describe-stacks --stack-name chromeless-<< parameters.stage >> --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text)
                   API_KEY=$(aws apigateway get-api-keys --query 'items[?name==`chromeless-apikey-<< parameters.stage >>`].value' --include-values --output text)
