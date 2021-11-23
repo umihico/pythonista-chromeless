@@ -41,7 +41,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 18.09.3
+          version: 19.03.13
       - aws-ecr/ecr-login
       - run: docker build -f pytest/Dockerfile -t pytest . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-pytest --build-arg BUILDKIT_INLINE_CACHE=1
       - aws-ecr/build-and-push-image:
