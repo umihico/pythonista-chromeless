@@ -32,6 +32,8 @@ aliases:
 
 jobs:
   pytest:
+    environment:
+      DOCKER_BUILDKIT: "1"
     parameters:
       stage:
         type: string
@@ -39,6 +41,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - aws-ecr/ecr-login
+      - run: DOCKER_BUILDKIT=1 docker build -f pytest/Dockerfile -t pytest . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-pytest --build-arg BUILDKIT_INLINE_CACHE=1
       - aws-ecr/build-and-push-image:
           checkout: false
           create-repo: true
@@ -46,18 +50,18 @@ jobs:
           tag: << pipeline.git.revision >>
           dockerfile: pytest/Dockerfile
           skip-when-tags-exist: true
-      - run: DOCKER_BUILDKIT=1 docker build -f pytest/Dockerfile -t pytest . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-pytest --build-arg BUILDKIT_INLINE_CACHE=1
       - when:
           condition:
             equal: [local, << parameters.stage >>]
           steps:
+            - aws-ecr/ecr-login
+            - run: DOCKER_BUILDKIT=1 docker build -t chromeless . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-dev --build-arg BUILDKIT_INLINE_CACHE=1
             - aws-ecr/build-and-push-image:
                 checkout: false
                 create-repo: true
                 repo: serverless-chromeless-dev
                 tag: << pipeline.git.revision >>
                 skip-when-tags-exist: true
-            - run: DOCKER_BUILDKIT=1 docker build -t chromeless . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-dev --build-arg BUILDKIT_INLINE_CACHE=1
             - run: echo CHROMELESS_SERVER_FUNCTION_NAME=local > .env
             - run:
                 name: Run tests [<< parameters.stage >>]
