@@ -48,7 +48,7 @@ jobs:
           checkout: false
           create-repo: true
           repo: serverless-chromeless-pytest
-          tag: << pipeline.git.revision >>
+          tag: "latest,<< pipeline.git.revision >>"
           dockerfile: pytest/Dockerfile
           skip-when-tags-exist: true
       - when:
@@ -61,7 +61,7 @@ jobs:
                 checkout: false
                 create-repo: true
                 repo: serverless-chromeless-dev
-                tag: << pipeline.git.revision >>
+                tag: "latest,<< pipeline.git.revision >>"
                 skip-when-tags-exist: true
             - run: echo CHROMELESS_SERVER_FUNCTION_NAME=local > .env
             - run:
