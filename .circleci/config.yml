@@ -38,12 +38,12 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker build -t chromeless .
       - run: docker build -f pytest/Dockerfile -t pytest .
       - when:
           condition:
             equal: [local, << parameters.stage >>]
           steps:
+            - run: docker build -t chromeless .
             - run: echo CHROMELESS_SERVER_FUNCTION_NAME=local > .env
             - run:
                 name: Run tests [<< parameters.stage >>]
