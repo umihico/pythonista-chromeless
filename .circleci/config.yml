@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   aws-cli: circleci/aws-cli@2.0.6
+  aws-ecr: circleci/aws-ecr@7.2.0
   serverless: circleci/serverless-framework@1.0.1
 
 aliases:
@@ -31,19 +32,37 @@ aliases:
 
 jobs:
   pytest:
+    environment:
+      DOCKER_BUILDKIT: "1"
     parameters:
       stage:
         type: string
     <<: *base_image
     steps:
       - checkout
-      - setup_remote_docker
-      - run: docker build -f pytest/Dockerfile -t pytest .
+      - setup_remote_docker:
+          version: 19.03.13
+      - aws-ecr/ecr-login
+      - run: docker build -f pytest/Dockerfile -t pytest . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-pytest --build-arg BUILDKIT_INLINE_CACHE=1
+      - aws-ecr/build-and-push-image:
+          checkout: false
+          create-repo: true
+          repo: serverless-chromeless-pytest
+          tag: "latest,<< pipeline.git.revision >>"
+          dockerfile: pytest/Dockerfile
+          skip-when-tags-exist: true
       - when:
           condition:
             equal: [local, << parameters.stage >>]
           steps:
-            - run: docker build -t chromeless .
+            - aws-ecr/ecr-login
+            - run: docker build -t chromeless . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-dev --build-arg BUILDKIT_INLINE_CACHE=1
+            - aws-ecr/build-and-push-image:
+                checkout: false
+                create-repo: true
+                repo: serverless-chromeless-dev
+                tag: "latest,<< pipeline.git.revision >>"
+                skip-when-tags-exist: true
             - run: echo CHROMELESS_SERVER_FUNCTION_NAME=local > .env
             - run:
                 name: Run tests [<< parameters.stage >>]

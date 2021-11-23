@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 
-circleci local execute --job pytest-local
+circleci local execute --job pytest-local $(cat .env)
 
 export AWS_PROFILE=public-circleci
 export AWS_DEFAULT_PROFILE=$AWS_PROFILE
@@ -10,6 +10,7 @@ cat <<EOF > .env
 -e AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
 -e AWS_REGION=$(aws configure get region)
 -e AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+-e AWS_ECR_ACCOUNT_URL=$(aws sts get-caller-identity --query Account --output text).dkr.ecr.$(aws configure get region).amazonaws.com
 -e AWS_DEFAULT_REGION=$(aws configure get region)
 -e PYPI_USERNAME_DEV=$(aws ssm get-parameter --name PYPI_USERNAME_TEST --query 'Parameter.Value' --output text --profile default)
 -e PYPI_PASSWORD_DEV=$(aws ssm get-parameter --name PYPI_PASSWORD_TEST --query 'Parameter.Value' --output text --profile default)
