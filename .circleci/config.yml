@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   aws-cli: circleci/aws-cli@2.0.6
+  aws-ecr: circleci/aws-ecr@7.2.0
   serverless: circleci/serverless-framework@1.0.1
 
 aliases:
@@ -31,19 +32,37 @@ aliases:
 
 jobs:
   pytest:
+    environment:
+      DOCKER_BUILDKIT: "1"
     parameters:
       stage:
         type: string
     <<: *base_image
     steps:
       - checkout
-      - setup_remote_docker
-      - run: docker build -t chromeless .
-      - run: docker build -f pytest/Dockerfile -t pytest .
+      - setup_remote_docker:
+          version: 19.03.13
+      - aws-ecr/ecr-login
+      - run: docker build -f pytest/Dockerfile -t pytest . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-pytest --build-arg BUILDKIT_INLINE_CACHE=1
+      - aws-ecr/build-and-push-image:
+          checkout: false
+          create-repo: true
+          repo: serverless-chromeless-pytest
+          tag: "latest,<< pipeline.git.revision >>"
+          dockerfile: pytest/Dockerfile
+          skip-when-tags-exist: true
       - when:
           condition:
             equal: [local, << parameters.stage >>]
           steps:
+            - aws-ecr/ecr-login
+            - run: docker build -t chromeless . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-dev --build-arg BUILDKIT_INLINE_CACHE=1
+            - aws-ecr/build-and-push-image:
+                checkout: false
+                create-repo: true
+                repo: serverless-chromeless-dev
+                tag: "latest,<< pipeline.git.revision >>"
+                skip-when-tags-exist: true
             - run: echo CHROMELESS_SERVER_FUNCTION_NAME=local > .env
             - run:
                 name: Run tests [<< parameters.stage >>]
@@ -69,12 +88,19 @@ jobs:
                   API_URL=$(aws cloudformation describe-stacks --stack-name chromeless-<< parameters.stage >> --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text)
                   API_KEY=$(aws apigateway get-api-keys --query 'items[?name==`chromeless-apikey-<< parameters.stage >>`].value' --include-values --output text)
                   END
-                  docker run --env-file .env -w /latest pytest
-                  docker run --env-file .env -w /0.2.9 pytest
-                  docker run --env-file .env -w /0.3.0 pytest
-                  docker run --env-file .env -w /0.3.6 pytest
-                  docker run --env-file .env -w /0.4.7 pytest
-                  docker run --env-file .env -w /0.4.8 pytest
+                  MAJOR_CHANGE_VERSIONS=('latest' '0.2.9' '0.3.0' '0.3.6' '0.4.7' '0.4.8')
+                  for ver in "${MAJOR_CHANGE_VERSIONS[@]}"
+                  do
+                      docker rm -f pypi-$ver || true
+                      docker run -d --name=pypi-$ver --env-file .env -w /$ver pytest
+                  done
+                  for ver in "${MAJOR_CHANGE_VERSIONS[@]}"
+                  do
+                      code=$(docker wait pypi-$ver)
+                      docker logs pypi-$ver
+                      echo pypi-$ver finished with $code
+                      if (( code > 0 )); then exit $code; fi
+                  done
   sls:
     parameters:
       stage:
