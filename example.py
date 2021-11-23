@@ -26,7 +26,8 @@ def test_example():
 
 
 def test_api():
-    chrome = Chromeless(os.getenv('API_URL', None), os.getenv('API_KEY', None))
+    chrome = Chromeless(os.getenv('API_URL', "None"),
+                        os.getenv('API_KEY', "None"))
     chrome.attach(example)
     chrome.attach(second_method)
     title, png, divcnt = chrome.example(demo_url)
