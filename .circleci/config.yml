@@ -6,12 +6,6 @@ orbs:
   serverless: circleci/serverless-framework@1.0.1
 
 aliases:
-  - &dev_conditions
-    filters:
-      branches:
-        only:
-          - development
-          - master
   - &master_conditions
     filters:
       branches:
@@ -21,7 +15,7 @@ aliases:
       - pytest-dev
   - &base_image
     docker:
-      - image: cimg/base:2021.04
+      - image: cimg/python:3.10.1-node
   - &fix_docker
     run:
       name: fix-docker
@@ -29,6 +23,9 @@ aliases:
         if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
           sudo chown $(whoami):$(whoami) /run/docker-temp.sock
         fi
+  - &setup_latest_remote_docker
+    setup_remote_docker:
+      version: 19.03.13
 
 jobs:
   pytest:
@@ -37,70 +34,56 @@ jobs:
     parameters:
       stage:
         type: string
+      chromeless-server-function-name:
+        type: string
     <<: *base_image
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 19.03.13
-      - aws-ecr/ecr-login
-      - run: docker build -f pytest/Dockerfile -t pytest . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-pytest --build-arg BUILDKIT_INLINE_CACHE=1
-      - aws-ecr/build-and-push-image:
-          checkout: false
-          create-repo: true
-          repo: serverless-chromeless-pytest
-          tag: "latest,<< pipeline.git.revision >>"
-          dockerfile: pytest/Dockerfile
-          skip-when-tags-exist: true
-      - when:
-          condition:
-            equal: [local, << parameters.stage >>]
-          steps:
-            - aws-ecr/ecr-login
-            - run: docker build -t chromeless . --cache-from=${AWS_ECR_ACCOUNT_URL}/serverless-chromeless-dev --build-arg BUILDKIT_INLINE_CACHE=1
-            - aws-ecr/build-and-push-image:
-                checkout: false
-                create-repo: true
-                repo: serverless-chromeless-dev
-                tag: "latest,<< pipeline.git.revision >>"
-                skip-when-tags-exist: true
-            - run: echo CHROMELESS_SERVER_FUNCTION_NAME=local > .env
-            - run:
-                name: Run tests [<< parameters.stage >>]
-                command: |
-                  docker rm -f chromeless || true
-                  docker network rm chromeless-network || true
-                  docker network create chromeless-network
-                  docker run --network chromeless-network --name chromeless -d chromeless
-                  docker run --network chromeless-network --env-file .env -w /latest pytest
-                  docker run --network chromeless-network --env-file .env -w /0.4.8 pytest
-                  docker rm -f chromeless
-      - unless:
-          condition:
-            equal: [local, << parameters.stage >>]
-          steps:
-            - aws-cli/setup
-            - run:
-                name: Run remote tests [<< parameters.stage >>]
-                command: |
-                  env >> .env # AWS credentials
-                  tee -a .env \<< END >/dev/null
-                  CHROMELESS_SERVER_FUNCTION_NAME=chromeless-server-<< parameters.stage >>
-                  API_URL=$(aws cloudformation describe-stacks --stack-name chromeless-<< parameters.stage >> --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text)
-                  API_KEY=$(aws apigateway get-api-keys --query 'items[?name==`chromeless-apikey-<< parameters.stage >>`].value' --include-values --output text)
-                  END
-                  MAJOR_CHANGE_VERSIONS=('latest' '0.2.9' '0.3.0' '0.3.6' '0.4.7' '0.4.8')
-                  for ver in "${MAJOR_CHANGE_VERSIONS[@]}"
-                  do
-                      docker rm -f pypi-$ver || true
-                      docker run -d --name=pypi-$ver --env-file .env -w /$ver pytest
-                  done
-                  for ver in "${MAJOR_CHANGE_VERSIONS[@]}"
-                  do
-                      code=$(docker wait pypi-$ver)
-                      docker logs pypi-$ver
-                      echo pypi-$ver finished with $code
-                      if (( code > 0 )); then exit $code; fi
-                  done
+      - aws-cli/setup
+      - <<: *fix_docker
+      - <<: *setup_latest_remote_docker
+      - run:
+          name: Test
+          command: |
+            CHROMELESS_SERVER_FUNCTION_NAME=${<< parameters.chromeless-server-function-name >>}
+            STAGE=${<< parameters.stage >>}
+            LOCAL_PYTHON_VERSION=3.7
+
+            cat \<<EOF > pytest/.env
+            LOCAL_PYTHON_VERSION=$LOCAL_PYTHON_VERSION
+            CHROMELESS_SERVER_FUNCTION_NAME=$CHROMELESS_SERVER_FUNCTION_NAME
+            LOCAL_CHROMELESS_PYPI_VERSION=
+            LOCAL_CHROMELESS_HOSTNAME=
+            CACHEBUST=
+            EOF
+
+            [ "$CHROMELESS_SERVER_FUNCTION_NAME" != "local" ] && cat \<<EOF >> pytest/.env
+            AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            AWS_REGION=$AWS_REGION
+            AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+            API_URL=$(aws cloudformation describe-stacks --stack-name chromeless-${STAGE} --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text)
+            API_KEY=$(aws apigateway get-api-keys --query "items[?name=='chromeless-apikey-${STAGE}'].value" --include-values --output text)
+            EOF
+
+            docker-compose -f pypi/docker-compose.yml up --build --force-recreate -d
+            PYPI_RELEASE_VERSION=$(docker-compose -f pypi/docker-compose.yml run --rm publisher python -c 'import __version__;print(__version__.__version__)')
+
+            CHROMELESS_VERSIONS=('0.2.9' '0.3.0' '0.3.6' '0.4.7' '0.4.8' $PYPI_RELEASE_VERSION)
+            [ "$CHROMELESS_SERVER_FUNCTION_NAME" == "local" ] && CHROMELESS_VERSIONS=("${CHROMELESS_VERSIONS[@]:5}")
+
+            for i in "${!CHROMELESS_VERSIONS[@]}"; do
+                sed -r "s/LOCAL_CHROMELESS_PYPI_VERSION=.*$/LOCAL_CHROMELESS_PYPI_VERSION=${CHROMELESS_VERSIONS[$i]}/g; s/LOCAL_CHROMELESS_HOSTNAME=.*$/LOCAL_CHROMELESS_HOSTNAME=chromeless$(date +%s)$RANDOM/g; s/CACHEBUST=.*$/CACHEBUST=$(date +%s)$RANDOM/g" -i pytest/.env
+                set -a && source pytest/.env && set +a
+                docker-compose -f pytest/docker-compose.yml -p p$i up --build --force-recreate -d
+            done
+            for i in "${!CHROMELESS_VERSIONS[@]}"; do
+                code=$(docker wait p${i}_pytest_1)
+                docker logs p${i}_pytest_1
+                docker kill p${i}_chromeless_1
+                echo p${i}_pytest_1 finished with $code
+                if (( code > 0 )); then exit $code; fi
+            done
   sls:
     parameters:
       stage:
@@ -110,14 +93,15 @@ jobs:
       - checkout
       - aws-cli/setup
       - serverless/setup
-      - setup_remote_docker
       - <<: *fix_docker
-      - run: sls deploy --stage << parameters.stage >> --region $AWS_REGION --conceal | grep -v "execute-api"
+      - <<: *setup_latest_remote_docker
+      - run:
+          name: Deploy
+          command: |
+            sls deploy --stage << parameters.stage >> --region ${AWS_REGION} --conceal | grep -v "execute-api"
 
   pypi:
     parameters:
-      stage:
-        type: string
       repository:
         type: string
       username:
@@ -127,22 +111,16 @@ jobs:
     <<: *base_image
     steps:
       - checkout
-      - setup_remote_docker
-      - run: docker build . -t pypienv -f pypi/Dockerfile
-      - run: touch chromeless/__version__.py
+      - <<: *fix_docker
+      - <<: *setup_latest_remote_docker
       - run:
-          name: publish pypi package [<< parameters.stage >>]
+          name: Publish
           command: |
-            env > .env
-            tee -a .env \<< END
-            PKG_NAME=chromeless
-            DIR_NAME=chromeless
             PYPI_USERNAME=${<< parameters.username >>}
             PYPI_PASSWORD=${<< parameters.password >>}
             REPOSITORY=<< parameters.repository >>
-            STAGE=<< parameters.stage >>
-            END
-            docker run --env-file .env pypienv
+            docker-compose -f pypi/docker-compose.yml build
+            docker-compose -f pypi/docker-compose.yml run publisher twine upload --verbose -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} --repository ${REPOSITORY} dist/*
 
 workflows:
   version: 2
@@ -151,21 +129,27 @@ workflows:
       - pytest:
           name: "pytest-local"
           stage: "local"
-          <<: *dev_conditions
-      - sls:
-          name: "sls-dev"
-          stage: "dev"
-          <<: *dev_conditions
+          chromeless-server-function-name: "local"
+          filters:
+            branches:
+              ignore:
+                - master
       - pypi:
           name: "pypi-dev"
-          stage: "stg"
           repository: "testpypi"
           username: PYPI_USERNAME_DEV
           password: PYPI_PASSWORD_DEV
-          <<: *dev_conditions
+          requires:
+            - pytest-local
+      - sls:
+          name: "sls-dev"
+          stage: "dev"
+          requires:
+            - pytest-local
       - pytest:
           name: "pytest-dev"
           stage: "dev"
+          chromeless-server-function-name: "chromeless-server-dev"
           requires:
             - pypi-dev
             - sls-dev
@@ -175,13 +159,13 @@ workflows:
           <<: *master_conditions
       - pypi:
           name: "pypi-prod"
-          stage: "prod"
           repository: "pypi"
           username: PYPI_USERNAME_PROD
           password: PYPI_PASSWORD_PROD
           <<: *master_conditions
       - pytest:
           name: "pytest-prod"
+          chromeless-server-function-name: "chromeless-server-prod"
           stage: "prod"
           requires:
             - pypi-prod

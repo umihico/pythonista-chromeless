@@ -1,5 +1,7 @@
-FROM umihico/pypienv AS pypienv
-WORKDIR /app
-COPY chromeless /app/chromeless
-COPY README.md /app/
-COPY pypi/setup.py /app/
+FROM python:3.7-buster
+
+RUN pip install setuptools wheel twine requests
+WORKDIR /work
+COPY README.md pypi/setup.py chromeless/__version__.py ./
+COPY chromeless ./chromeless
+RUN python setup.py bdist_wheel
