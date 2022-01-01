@@ -146,11 +146,12 @@ jobs:
       - run:
           name: Skip if already published
           command: |
+            set -xveo pipefail
             REPOSITORY=<< parameters.repository >>
-            HOST=$( [ "$REPOSITORY" = "testpypi" ] && echo "test.pypi.org" || echo "pypi.org")
+            HOST=$( [ "$REPOSITORY" == "testpypi" ] && echo "test.pypi.org" || echo "pypi.org")
             PYPI_RELEASE_VERSION=$(grep -Po '[0-9]+.[0-9]+.[0-9]+' chromeless/__version__.py)
             STATUS_CODE=$(curl -s -o /dev/null -I -w "%{http_code}" "https://${HOST}/pypi/chromeless/${PYPI_RELEASE_VERSION}/json")
-            [ "$STATUS_CODE" == "200" ] && circleci-agent step halt
+            [ "$STATUS_CODE" == "200" ] && circleci-agent step halt || true
       - run:
           name: Publish
           command: |
