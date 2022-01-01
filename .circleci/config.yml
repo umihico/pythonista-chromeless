@@ -11,8 +11,11 @@ aliases:
       branches:
         only:
           - master
-    requires:
-      - pytest-dev
+  - &not_master_conditions
+    filters:
+      branches:
+        ignore:
+          - master
   - &base_image
     machine:
       image: ubuntu-2004:202111-02
@@ -167,22 +170,17 @@ workflows:
           chromeless-server-function-name: "local"
           apiurl: API_URL_DEV # not used
           apikey: API_KEY_DEV # not used
-          filters:
-            branches:
-              ignore:
-                - master
+          <<: *not_master_conditions
       - pypi:
           name: "pypi-dev"
           repository: "testpypi"
           username: PYPI_USERNAME_DEV
           password: PYPI_PASSWORD_DEV
-          requires:
-            - pytest-local
+          <<: *not_master_conditions
       - sls:
           name: "sls-dev"
           stage: "dev"
-          requires:
-            - pytest-local
+          <<: *not_master_conditions
       - pytest:
           name: "pytest-dev"
           chromeless-server-function-name: "chromeless-server-dev"
