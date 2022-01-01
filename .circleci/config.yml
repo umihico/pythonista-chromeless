@@ -81,8 +81,8 @@ jobs:
           name: Test
           command: |
             CHROMELESS_SERVER_FUNCTION_NAME=<< parameters.chromeless-server-function-name >>
-
-            docker-compose -f pypi/docker-compose.yml up --build --force-recreate -d
+            DOCKER_COMPOSE_EXTRA_YMLS=$( [ "$CHROMELESS_SERVER_FUNCTION_NAME" = "local" ] && echo "  -f pypi/docker-compose.local.yml" || echo "")
+            docker-compose -f pypi/docker-compose.yml $DOCKER_COMPOSE_EXTRA_YMLS up --build --force-recreate -d
             PYPI_RELEASE_VERSION=$(grep -Po '[0-9]+.[0-9]+.[0-9]+' chromeless/__version__.py)
 
             CHROMELESS_VERSIONS=('0.2.9' '0.3.0' '0.3.6' '0.4.7' '0.4.8' $PYPI_RELEASE_VERSION)

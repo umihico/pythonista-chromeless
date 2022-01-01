@@ -29,7 +29,7 @@ services:
     depends_on:
       pypiserver:
         condition: service_healthy
-    command: "twine upload --verbose -u foo -p bar --repository-url http://pypiserver:8080/ dist/*"
+    command: "whoami"
     networks:
       - ntwrk
 
