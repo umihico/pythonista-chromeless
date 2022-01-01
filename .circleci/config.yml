@@ -14,8 +14,8 @@ aliases:
     requires:
       - pytest-dev
   - &base_image
-    docker:
-      - image: cimg/python:3.10.1-node
+    machine:
+      image: ubuntu-2004:202111-02
   - &fix_docker
     run:
       name: fix-docker
@@ -23,9 +23,6 @@ aliases:
         if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
           sudo chown $(whoami):$(whoami) /run/docker-temp.sock
         fi
-  - &setup_latest_remote_docker
-    setup_remote_docker:
-      version: 19.03.13
 
 jobs:
   pytest:
@@ -41,7 +38,6 @@ jobs:
       - checkout
       - aws-cli/setup
       - <<: *fix_docker
-      - <<: *setup_latest_remote_docker
       - run:
           name: Test
           command: |
@@ -94,7 +90,6 @@ jobs:
       - aws-cli/setup
       - serverless/setup
       - <<: *fix_docker
-      - <<: *setup_latest_remote_docker
       - run:
           name: Deploy
           command: |
@@ -112,7 +107,6 @@ jobs:
     steps:
       - checkout
       - <<: *fix_docker
-      - <<: *setup_latest_remote_docker
       - run:
           name: Publish
           command: |
