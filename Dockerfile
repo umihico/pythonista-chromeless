@@ -1,17 +1,17 @@
-FROM public.ecr.aws/lambda/python:3.7
+FROM public.ecr.aws/lambda/python:3.8 as build
+RUN yum install -y unzip && \
+    curl -Lo "/tmp/chromedriver.zip" "https://chromedriver.storage.googleapis.com/96.0.4664.45/chromedriver_linux64.zip" && \
+    curl -Lo "/tmp/chrome-linux.zip" "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Linux_x64%2F929511%2Fchrome-linux.zip?alt=media" && \
+    curl -Lo "/tmp/Noto_Sans_JP.zip" "https://fonts.google.com/download?family=Noto%20Sans%20JP" && \
+    unzip /tmp/chromedriver.zip -d /opt/ && \
+    unzip /tmp/Noto*.zip -d /opt/ && \
+    unzip /tmp/chrome-linux.zip -d /opt/
 
-RUN mkdir -p /opt/bin/ && \
-    mkdir -p /opt/fonts/ && \
-    mkdir -p /tmp/downloads/fonts && \
-    curl -SL https://chromedriver.storage.googleapis.com/2.37/chromedriver_linux64.zip > /tmp/downloads/chromedriver.zip && \
-    curl -SL https://github.com/adieuadieu/serverless-chrome/releases/download/v1.0.0-37/stable-headless-chromium-amazonlinux-2017-03.zip > /tmp/downloads/headless-chromium.zip && \
-    curl -SL https://fonts.google.com/download?family=Noto%20Sans%20JP > /tmp/downloads/Noto_Sans_JP.zip && \
-    unzip /tmp/downloads/chromedriver.zip -d /opt/bin/ && \
-    unzip /tmp/downloads/headless-chromium.zip -d /opt/bin/ && \
-    unzip /tmp/downloads/Noto*.zip -d /tmp/downloads/fonts/ && \
-    mv /tmp/downloads/fonts/NotoSansJP-Regular.otf /opt/fonts/ && \
-    rm -rf /tmp/downloads
-
+FROM public.ecr.aws/lambda/python:3.8
+RUN yum install atk cups-libs gtk3 libXcomposite alsa-lib \
+    libXcursor libXdamage libXext libXi libXrandr libXScrnSaver \
+    libXtst pango at-spi2-atk libXt xorg-x11-server-Xvfb \
+    xorg-x11-xauth dbus-glib dbus-glib-devel -y
 COPY sls/requirements.txt ./
 RUN pip install -r requirements.txt
 
@@ -19,4 +19,7 @@ COPY sls/server.py ./
 COPY chromeless/picklelib.py ./
 COPY sls/fonts.conf /opt/fonts/
 COPY sls/versions/ ./versions/
+COPY --from=build /opt/chrome-linux /opt/chrome
+COPY --from=build /opt/chromedriver /opt/
+COPY --from=build /opt/NotoSansJP-Regular.otf /opt/fonts/
 CMD ["server.handler"]
