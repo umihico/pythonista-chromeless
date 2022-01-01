@@ -23,6 +23,9 @@ aliases:
         if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
           sudo chown $(whoami):$(whoami) /run/docker-temp.sock
         fi
+  - &setup_latest_remote_docker
+    setup_remote_docker:
+      version: 19.03.13
 
 jobs:
   pytest:
@@ -114,6 +117,7 @@ jobs:
       - aws-cli/setup
       - serverless/setup
       - <<: *fix_docker
+      - <<: *setup_latest_remote_docker
       - run:
           name: Deploy
           command: |
@@ -134,7 +138,6 @@ jobs:
       - run:
           name: Publish
           command: |
-            set -xveo pipefail
             # local
             # PYPI_USERNAME_DEV=$(aws ssm get-parameter --name PYPI_USERNAME_TEST --query 'Parameter.Value' --output text --profile default)
             # PYPI_PASSWORD_DEV=$(aws ssm get-parameter --name PYPI_PASSWORD_TEST --query 'Parameter.Value' --output text --profile default)
