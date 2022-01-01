@@ -59,7 +59,7 @@ class Chromeless():
 
     def __invoke_local(self, dumped):
         response = requests.post(
-            "http://chromeless:8080/2015-03-31/functions/function/invocations", json={'dumped': dumped})
+            "http://"+os.environ['LOCAL_CHROMELESS_HOSTNAME']+":8080/2015-03-31/functions/function/invocations", json={'dumped': dumped})
         return response.text
 
     def __invoke_lambda(self, dumped):

@@ -1,21 +1,24 @@
-FROM python:3.7-buster
+ARG LOCAL_PYTHON_VERSION
+FROM python:${LOCAL_PYTHON_VERSION}-buster
 
 RUN apt-get update && \
     apt-get install -y software-properties-common && \
     apt install -y tesseract-ocr tesseract-ocr-jpn
 
-COPY pytest/requirements.txt .
+WORKDIR /work
+
+COPY pytest/requirements.txt ./
 RUN pip install -r requirements.txt
-RUN mkdir /0.2.9 && pip install 'chromeless==0.2.9' -t /0.2.9/ && \
-    mkdir /0.3.0 && pip install 'chromeless==0.3.0' -t /0.3.0/ && \
-    mkdir /0.3.6 && pip install 'chromeless==0.3.6' -t /0.3.6/ && \
-    mkdir /0.4.7 && pip install 'chromeless==0.4.7' -t /0.4.7/ && \
-    mkdir /0.4.8 && pip install 'chromeless==0.4.8' -t /0.4.8/
 
-COPY chromeless /latest/chromeless
-COPY example.py /
-COPY pytest/tests.py /
-COPY pytest/docker-entrypoint.sh /
-RUN chmod +x docker-entrypoint.sh
+COPY example.py pytest/tests.py ./
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENV PIP_INDEX_URL=http://pypi-cache-server:8080/simple
+ENV PIP_TRUSTED_HOST="pypi-cache-server pypiserver"
+
+ARG CACHEBUST=1
+ARG LOCAL_CHROMELESS_PYPI_VERSION
+RUN echo "pip install chromeless==$LOCAL_CHROMELESS_PYPI_VERSION" > ./docker-entrypoint.sh && \
+    echo "pytest example.py tests.py -ra" >> ./docker-entrypoint.sh && \
+    chmod +x ./docker-entrypoint.sh
+
+CMD [ "sh", "docker-entrypoint.sh" ]

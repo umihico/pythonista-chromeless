@@ -1,0 +1,30 @@
+version: "3.5"
+
+services:
+
+  pytest:
+    image: pytest
+    build:
+      dockerfile: pytest/Dockerfile
+      context: ..
+      args:
+        - LOCAL_CHROMELESS_PYPI_VERSION=${LOCAL_CHROMELESS_PYPI_VERSION}
+        - LOCAL_PYTHON_VERSION=${LOCAL_PYTHON_VERSION}
+        - CACHEBUST=${CACHEBUST}
+    env_file:
+      - .env
+    networks:
+      ntwrk:
+
+  chromeless:
+    image: chromeless
+    build:
+      dockerfile: Dockerfile
+      context: ..
+    hostname: ${LOCAL_CHROMELESS_HOSTNAME}
+    networks:
+      ntwrk:
+
+networks:
+  ntwrk:
+    external: true
