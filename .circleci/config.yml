@@ -41,6 +41,8 @@ jobs:
         type: string
       apikey:
         type: string
+      pip-extra-index-url:
+        type: string
     <<: *base_image
     steps:
       - checkout
@@ -52,6 +54,7 @@ jobs:
             CHROMELESS_SERVER_FUNCTION_NAME=<< parameters.chromeless-server-function-name >>
             API_URL="$<< parameters.apiurl >>"
             API_KEY="$<< parameters.apikey >>"
+            PIP_EXTRA_INDEX_URL="<< parameters.pip-extra-index-url >>"
 
             # local
             # STAGE=dev
@@ -63,6 +66,7 @@ jobs:
             # AWS_DEFAULT_REGION=$(aws configure get region)
             # API_URL=$(aws cloudformation describe-stacks --stack-name chromeless-${STAGE} --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" --output text)
             # API_KEY=$(aws apigateway get-api-keys --query "items[?name=='chromeless-apikey-${STAGE}'].value" --include-values --output text)
+            # PIP_EXTRA_INDEX_URL="http://pypiserver:8080/simple"
 
             cat \<<EOF > pytest/.env
             LOCAL_PYTHON_VERSION=3.7
@@ -70,6 +74,7 @@ jobs:
             LOCAL_CHROMELESS_PYPI_VERSION=
             LOCAL_CHROMELESS_HOSTNAME=
             CACHEBUST=
+            PIP_EXTRA_INDEX_URL=$PIP_EXTRA_INDEX_URL
             EOF
 
             [ "$CHROMELESS_SERVER_FUNCTION_NAME" != "local" ] && cat \<<EOF >> pytest/.env || true
@@ -170,6 +175,7 @@ workflows:
           chromeless-server-function-name: "local"
           apiurl: API_URL_DEV # not used
           apikey: API_KEY_DEV # not used
+          pip-extra-index-url: "http://pypiserver:8080/simple"
           <<: *not_master_conditions
       - pypi:
           name: "pypi-dev"
@@ -186,6 +192,7 @@ workflows:
           chromeless-server-function-name: "chromeless-server-dev"
           apiurl: API_URL_DEV
           apikey: API_KEY_DEV
+          pip-extra-index-url: "https://test.pypi.org/simple"
           requires:
             - pypi-dev
             - sls-dev
@@ -204,6 +211,7 @@ workflows:
           chromeless-server-function-name: "chromeless-server-prod"
           apiurl: API_URL_PROD
           apikey: API_KEY_PROD
+          pip-extra-index-url: "https://pypi.org/simple" # not used
           requires:
             - pypi-prod
             - sls-prod

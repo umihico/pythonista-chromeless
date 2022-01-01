@@ -13,7 +13,6 @@ RUN pip install -r requirements.txt
 COPY example.py pytest/tests.py ./
 
 ENV PIP_INDEX_URL=http://pypi-cache-server:8080/simple
-ENV PIP_EXTRA_INDEX_URL=http://pypiserver:8080/simple
 ENV PIP_TRUSTED_HOST="pypi-cache-server pypiserver"
 
 ARG CACHEBUST=1
