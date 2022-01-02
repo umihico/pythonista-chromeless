@@ -1,0 +1,13 @@
+version: "3.5"
+
+services:
+
+  local:
+    build:
+      dockerfile: pytest/local/Dockerfile.local
+      context: ../..
+    command: ["python", "local.py"]
+    environment:
+      - CHROMELESS_SERVER_FUNCTION_NAME=local
+    volumes:
+      - /tmp:/tmp
