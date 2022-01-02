@@ -69,7 +69,7 @@ jobs:
             # PIP_EXTRA_INDEX_URL="http://pypiserver:8080/simple"
 
             cat \<<EOF > pytest/.env
-            LOCAL_PYTHON_VERSION=3.7
+            LOCAL_PYTHON_VERSION=
             CHROMELESS_SERVER_FUNCTION_NAME=$CHROMELESS_SERVER_FUNCTION_NAME
             LOCAL_CHROMELESS_PYPI_VERSION=
             LOCAL_CHROMELESS_HOSTNAME=
@@ -93,27 +93,28 @@ jobs:
             docker-compose -f pypi/docker-compose.yml $DOCKER_COMPOSE_EXTRA_YMLS up --build --force-recreate -d
             PYPI_RELEASE_VERSION=$(grep -Po '[0-9]+.[0-9]+.[0-9]+' chromeless/__version__.py)
 
+            LOCAL_PYTHON_VERSIONS=('3.7' '3.8' '3.9')
             CHROMELESS_VERSIONS=('0.2.9' '0.3.0' '0.3.6' '0.4.7' '0.4.8' $PYPI_RELEASE_VERSION)
             [ "$CHROMELESS_SERVER_FUNCTION_NAME" == "local" ] && CHROMELESS_VERSIONS=("${CHROMELESS_VERSIONS[@]:5}") || true
 
-            for i in "${!CHROMELESS_VERSIONS[@]}"; do
-                sed -r "s/LOCAL_CHROMELESS_PYPI_VERSION=.*$/LOCAL_CHROMELESS_PYPI_VERSION=${CHROMELESS_VERSIONS[$i]}/g; s/LOCAL_CHROMELESS_HOSTNAME=.*$/LOCAL_CHROMELESS_HOSTNAME=chromeless$(date +%s)$RANDOM/g; s/CACHEBUST=.*$/CACHEBUST=$(date +%s)$RANDOM/g" -i pytest/.env
-                cat pytest/.env | grep LOCAL_CHROMELESS_PYPI_VERSION
-                set -a && source pytest/.env && set +a
-                docker-compose -f pytest/docker-compose.yml -p p$i up --build --force-recreate -d
+            for j in "${!LOCAL_PYTHON_VERSIONS[@]}"; do
+                for i in "${!CHROMELESS_VERSIONS[@]}"; do
+                    sed -r "s/LOCAL_PYTHON_VERSION=.*$/LOCAL_PYTHON_VERSION=${LOCAL_PYTHON_VERSIONS[$j]}/g; s/LOCAL_CHROMELESS_PYPI_VERSION=.*$/LOCAL_CHROMELESS_PYPI_VERSION=${CHROMELESS_VERSIONS[$i]}/g; s/LOCAL_CHROMELESS_HOSTNAME=.*$/LOCAL_CHROMELESS_HOSTNAME=chromeless$(date +%s)$RANDOM/g; s/CACHEBUST=.*$/CACHEBUST=$(date +%s)$RANDOM/g" -i pytest/.env
+                    cat pytest/.env | grep LOCAL_CHROMELESS_PYPI_VERSION
+                    set -a && source pytest/.env && set +a
+                    docker-compose -f pytest/docker-compose.yml -p p${j}_c${i} up --build --force-recreate -d
+                done
             done
-            for i in "${!CHROMELESS_VERSIONS[@]}"; do
-                code=$(docker wait p${i}_pytest_1)
-                mkdir -p /tmp/TESTS/${CHROMELESS_VERSIONS[$i]}
-                docker logs p${i}_pytest_1 |& tee /tmp/TESTS/${CHROMELESS_VERSIONS[$i]}/pytest.txt
-                docker logs p${i}_chromeless_1 |& tee /tmp/TESTS/${CHROMELESS_VERSIONS[$i]}/chromeless.txt
-                docker kill p${i}_chromeless_1
-                echo p${i}_pytest_1 finished with $code
-                if (( code > 0 )); then exit $code; fi
+            for j in "${!LOCAL_PYTHON_VERSIONS[@]}"; do
+                for i in "${!CHROMELESS_VERSIONS[@]}"; do
+                    code=$(docker wait p${j}_c${i}_pytest_1)
+                    docker logs p${j}_c${i}_pytest_1
+                    docker logs p${j}_c${i}_chromeless_1
+                    docker kill p${j}_c${i}_chromeless_1
+                    echo p${i}_pytest_1 finished with $code
+                    if (( code > 0 )); then exit $code; fi
+                done
             done
-
-      - store_artifacts:
-          path: tmp/TESTS
 
   sls:
     parameters:
