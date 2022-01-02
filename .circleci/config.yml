@@ -93,7 +93,7 @@ jobs:
             docker-compose -f pypi/docker-compose.yml $DOCKER_COMPOSE_EXTRA_YMLS up --build --force-recreate -d
             PYPI_RELEASE_VERSION=$(grep -Po '[0-9]+.[0-9]+.[0-9]+' chromeless/__version__.py)
 
-            LOCAL_PYTHON_VERSIONS=('3.7' '3.8')
+            LOCAL_PYTHON_VERSIONS=('3.7' '3.8' '3.9')
             CHROMELESS_VERSIONS=('0.2.9' '0.3.0' '0.3.6' '0.4.7' '0.4.8' $PYPI_RELEASE_VERSION)
             [ "$CHROMELESS_SERVER_FUNCTION_NAME" == "local" ] && CHROMELESS_VERSIONS=("${CHROMELESS_VERSIONS[@]:5}") || true
 
