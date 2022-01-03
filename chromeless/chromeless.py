@@ -8,10 +8,19 @@ import requests
 import os
 
 
+def disable_interactive_mode():
+    import __main__ as _main
+    # https://stackoverflow.com/questions/2356399/tell-if-python-is-in-interactive-mode
+    if not hasattr(_main, '__file__'):
+        raise RuntimeError(
+            "Interactive mode is not supported in Chromeless. Please run from files.")
+
+
 class Chromeless():
     REQUIRED_SERVER_VERSION = 2
 
     def __init__(self, gateway_url=None, gateway_apikey=None, chrome_options=None, function_name='chromeless-server-prod'):
+        disable_interactive_mode()
         self.gateway_url = gateway_url
         self.gateway_apikey = gateway_apikey
         self.options = chrome_options

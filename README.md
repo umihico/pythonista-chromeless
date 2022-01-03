@@ -10,7 +10,7 @@ Let's access this benefit easily!
 ## Example
 
 ```python
-# Write the method.
+# Write the method to a file. (NOT interactive mode.)
 def get_title(self, url):
     self.get(url)
     return self.title
