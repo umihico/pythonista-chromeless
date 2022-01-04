@@ -1,14 +1,16 @@
 # chromeless
+
 AWS lambda with selenium & python is powerful solution.
 Let's access this benefit easily!
 
-+ Don't create lambda functions every time. Just create this once.
-+ Write the method.
-+ Selenium dynamically execute your script.
+- Don't create lambda functions every time. Just create this once.
+- Write the method.
+- Selenium dynamically execute your script.
 
 ## Example
+
 ```python
-# Write the method.
+# Write the method to a file. (NOT interactive mode.)
 def get_title(self, url):
     self.get(url)
     return self.title
@@ -22,14 +24,15 @@ print(chrome.get_title("https://google.com")) # Returns Google
 
 ## Installing
 
-  + `git clone --depth 1 https://github.com/umihico/pythonista-chromeless.git chromeless && cd $_`
-  + `sls deploy --region YOUR_REGION`
-  + `pip install chromeless`
+- `git clone --depth 1 https://github.com/umihico/pythonista-chromeless.git chromeless && cd $_`
+- `sls deploy --region YOUR_REGION`
+- `pip install chromeless`
 
 That's it! Now run the `example.py` and confirm your selenium works in lambda functions!
 
 ## Tips
-+ **Don't call selenium native methods directly.** Solution is wrapping.
+
+- **Don't call selenium native methods directly.** Solution is wrapping.
 
 ```python
 # BAD EXAMPLE
@@ -49,7 +52,7 @@ print(chrome.wrapper("https://microsoft.com")) # But you can execute as many tim
 print(chrome.wrapper("https://apple.com")) # Arguments are adjustable each time.
 ```
 
-+ Multiple methods are also attachable.
+- Multiple methods are also attachable.
 
 ```python
 def login(self):
@@ -74,7 +77,7 @@ print(chrome.test1())
 print(chrome.test2())
 ```
 
-+ To screenshot
+- To screenshot
 
 ```python
 # BAD EXAMPLE
@@ -99,4 +102,5 @@ with open("screenshot.png", 'wb') as f:
 ```
 
 ### [License](https://github.com/umihico/pythonista-chromeless/blob/master/LICENSE)
+
 The project is licensed under the MIT license.

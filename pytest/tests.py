@@ -24,12 +24,33 @@ def test_example_locally_named_arg():
 
 
 def test_non_toplevel_func():
+    def child_func(self, url):
+        self.get(url)
+        return self.title
+    chrome = Chromeless()
+    chrome.attach(child_func)
+    assert supposed_title in chrome.child_func(demo_url).lower()
+
+
+def test_reserved_method_name_attached():
     def func(self, url):
         self.get(url)
         return self.title
     chrome = Chromeless()
     chrome.attach(func)
-    assert supposed_title in chrome.func(demo_url).lower()
+    try:
+        chrome.func(demo_url).lower()
+    except Exception:
+        import traceback
+        detail = traceback.format_exc()
+        REQUIRED_SERVER_VERSION = chrome.REQUIRED_SERVER_VERSION if hasattr(
+            chrome, "REQUIRED_SERVER_VERSION") else None
+        if REQUIRED_SERVER_VERSION == 1 or REQUIRED_SERVER_VERSION is None:
+            assert "return pickle.loads(zlib.decompress(base64.b64decode(obj.encode())))" in detail
+        else:
+            assert "CHROMELESS TRACEBACK IN LAMBDA START" in detail
+            assert "'func' might be reserved variable name in chromeless. Please retry after re-naming." in detail
+            assert "CHROMELESS TRACEBACK IN LAMBDA END" in detail
 
 
 def test_error():

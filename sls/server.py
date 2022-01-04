@@ -73,6 +73,9 @@ class ChromelessServer():
             except Exception:
                 exec(textwrap.dedent(inspected))
             func = locals()[name]
+        except KeyError:
+            raise Exception(
+                "'{}' might be reserved variable name in chromeless. Please retry after re-naming.".format(name))
         except Exception:
             func = types.FunctionType(
                 marshal.loads(marshaled), globals(), name)
@@ -89,11 +92,11 @@ class ChromelessServer():
         kw = arguments["kw"]
         options = arguments["options"]
         chrome = self.gen_chrome(options, dirname)
-        for name, code in codes.items():
-            func = self.parse_code(code, name)
-            setattr(chrome, name, types.MethodType(func, chrome))
         metadata = {'status': 'success'}
         try:
+            for name, code in codes.items():
+                func = self.parse_code(code, name)
+                setattr(chrome, name, types.MethodType(func, chrome))
             response = getattr(chrome, invoked_func_name)(*arg, **kw)
         except Exception:
             metadata['status'] = 'error'

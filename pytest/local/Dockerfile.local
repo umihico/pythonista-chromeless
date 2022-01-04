@@ -1,0 +1,13 @@
+FROM python:3.8-buster
+
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    apt install -y tesseract-ocr tesseract-ocr-jpn
+
+COPY pytest/requirements.txt .
+RUN pip install -r requirements.txt
+
+WORKDIR /work
+COPY chromeless ./chromeless
+COPY pytest/local/local.py .
+RUN mkdir /tmp/chromeless
