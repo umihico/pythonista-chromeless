@@ -14,15 +14,16 @@ def attaching_from_interactive_mode():
     chrome = Chromeless()
     try:
         chrome.attach(get_title)
+        chrome.get_title("https://example.com/")
     except RuntimeError as e:
-        if "Interactive mode is not supported in Chromeless. Please run from files." in str(e):
+        if "Chromeless does not support interactive mode. Please run from files." in str(e):
             print("OK")
         else:
             raise e
     except OSError as e:
         import chromeless
         from packaging import version
-        if version.parse(chromeless.__version__) > version.parse("0.7.14"):
+        if version.parse(chromeless.__version__) > version.parse("0.7.15"):
             raise e
         if "could not get source code" in str(e):
             print("OK")
