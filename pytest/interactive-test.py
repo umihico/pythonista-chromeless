@@ -23,7 +23,9 @@ def attaching_from_interactive_mode():
     except OSError as e:
         import chromeless
         from packaging import version
-        if version.parse(chromeless.__version__) > version.parse("0.7.15"):
+        chromeless_version = chromeless.__version__ if hasattr(
+            chromeless, '__version__') else '0.0.1'
+        if version.parse(chromeless_version) > version.parse("0.7.15"):
             raise e
         if "could not get source code" in str(e):
             print("OK")
