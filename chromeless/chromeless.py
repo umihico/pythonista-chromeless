@@ -21,8 +21,15 @@ class Chromeless():
         self.codes = {}
 
     def attach(self, method):
-        self.codes[method.__name__] = inspect.getsource(
-            method), marshal.dumps(method.__code__)
+        try:
+            self.codes[method.__name__] = inspect.getsource(
+                method), marshal.dumps(method.__code__)
+        except OSError as e:
+            if "could not get source code" in str(e):
+                raise RuntimeError(
+                    "Chromeless does not support interactive mode. Please run from files.")
+            else:
+                raise e
 
     def __getattr__(self, name):
         if name in self.codes:
