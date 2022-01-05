@@ -8,20 +8,11 @@ import requests
 import os
 
 
-def disable_interactive_mode():
-    import __main__ as _main
-    # https://stackoverflow.com/questions/2356399/tell-if-python-is-in-interactive-mode
-    if not hasattr(_main, '__file__'):
-        raise RuntimeError(
-            "Interactive mode is not supported in Chromeless. Please run from files.")
-
-
-class Chromeless:
+class Chromeless():
     REQUIRED_SERVER_VERSION = 2
 
     def __init__(self, gateway_url=None, gateway_apikey=None, chrome_options=None,
                  function_name='chromeless-server-prod', boto_session=boto3):
-        disable_interactive_mode()
         self.boto_session = boto_session
         self.gateway_url = gateway_url
         self.gateway_apikey = gateway_apikey
@@ -32,8 +23,15 @@ class Chromeless:
         self.codes = {}
 
     def attach(self, method):
-        self.codes[method.__name__] = inspect.getsource(
-            method), marshal.dumps(method.__code__)
+        try:
+            self.codes[method.__name__] = inspect.getsource(
+                method), marshal.dumps(method.__code__)
+        except OSError as e:
+            if "could not get source code" in str(e):
+                raise RuntimeError(
+                    "Chromeless does not support interactive mode. Please run from files.")
+            else:
+                raise e
 
     def __getattr__(self, name):
         if name in self.codes:
