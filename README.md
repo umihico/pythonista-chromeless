@@ -22,6 +22,30 @@ chrome.attach(get_title)
 print(chrome.get_title("https://google.com")) # Returns Google
 ```
 
+
+You can also provide boto3 session object if you don't want to use default aws profile:
+```python
+from chromeless import Chromeless
+from boto3.session import Session
+
+session = Session(aws_access_key_id='<YOUR ACCESS KEY ID>',
+                  aws_secret_access_key='<YOUR SECRET KEY>',
+                  region_name='<REGION NAME>')
+# or
+session = Session(profile_name='<YOUR_PROFILE_NAME>')
+chrome = Chromeless(boto_session=session)
+```
+
+Or also you can just set appropriate environment vars works with boto3,
+ so it will auto detect your choice e.g.:
+```
+# In mac or linux
+export AWS_DEFAULT_REGION=<your aws region>
+
+# In windows
+set AWS_ACCESS_KEY_ID=<your aws key>
+```
+
 ## Installing
 
 - `git clone --depth 1 https://github.com/umihico/pythonista-chromeless.git chromeless && cd $_`
