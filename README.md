@@ -33,7 +33,7 @@ session = Session(aws_access_key_id='<YOUR ACCESS KEY ID>',
                   region_name='<REGION NAME>')
 # or
 session = Session(profile_name='<YOUR_PROFILE_NAME>')
-chrome = Chromeless(boto_session=session)
+chrome = Chromeless(boto3_session=session)
 ```
 
 Or also you can just set appropriate environment vars works with boto3,
@@ -43,7 +43,7 @@ Or also you can just set appropriate environment vars works with boto3,
 export AWS_DEFAULT_REGION=<your aws region>
 
 # In windows
-set AWS_ACCESS_KEY_ID=<your aws key>
+set AWS_DEFAULT_REGION=<your aws region>
 ```
 
 ## Installing

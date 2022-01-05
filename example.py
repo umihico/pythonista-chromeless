@@ -26,7 +26,7 @@ def test_example_with_session(**session_kw):
     """
     from boto3.session import Session
     session = Session(**session_kw)
-    chrome = Chromeless(boto_session=session)
+    chrome = Chromeless(boto3_session=session)
     test_example(chrome)
 
 
