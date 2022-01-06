@@ -11,7 +11,9 @@ import os
 class Chromeless():
     REQUIRED_SERVER_VERSION = 2
 
-    def __init__(self, gateway_url=None, gateway_apikey=None, chrome_options=None, function_name='chromeless-server-prod'):
+    def __init__(self, gateway_url=None, gateway_apikey=None, chrome_options=None,
+                 function_name='chromeless-server-prod', boto3_session=None):
+        self.boto3_session = boto3_session if boto3_session is not None else boto3
         self.gateway_url = gateway_url
         self.gateway_apikey = gateway_apikey
         self.options = chrome_options
@@ -70,7 +72,7 @@ class Chromeless():
         return response.text
 
     def __invoke_lambda(self, dumped):
-        client = boto3.client('lambda')
+        client = self.boto3_session.client('lambda')
         response = client.invoke(
             FunctionName=self.function_name,
             InvocationType='RequestResponse',
