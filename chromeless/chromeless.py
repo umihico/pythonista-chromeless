@@ -13,9 +13,7 @@ class Chromeless():
 
     def __init__(self, gateway_url=None, gateway_apikey=None, chrome_options=None,
                  function_name='chromeless-server-prod', boto3_session=None):
-        if boto3_session is None:
-            boto3_session = boto3
-        self.boto3_session = boto3_session
+        self.boto3_session = boto3_session if boto3_session is not None else boto3
         self.gateway_url = gateway_url
         self.gateway_apikey = gateway_apikey
         self.options = chrome_options
