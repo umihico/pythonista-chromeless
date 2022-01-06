@@ -1,4 +1,4 @@
-FROM python:3.7-buster
+FROM python:3.8-buster
 
 RUN pip install setuptools wheel twine requests
 WORKDIR /work

@@ -1,18 +1,54 @@
-from chromeless import Chromeless
-from example import example, second_method, assert_response, demo_url, supposed_title
 import os
+from chromeless import Chromeless
+import chromeless
+from example import example, second_method, demo_url, supposed_title, test_example as _test_example, test_api as _test_api
 from PIL import Image
-import sys
 import pyocr
 import pyocr.builders
+from boto3.session import Session
+from packaging import version
+chromeless_version = chromeless.__version__ if hasattr(
+    chromeless, '__version__') else '0.0.1'
 
 
-def test_example_locally():
-    chrome = Chromeless()
-    chrome.attach(example)
-    chrome.attach(second_method)
-    title, png, divcnt = chrome.example(demo_url)
-    assert_response(title, png, divcnt)
+def assert_response(title, png, divcnt):
+    assert supposed_title in title.lower()
+    with open('./img.png', 'wb') as f:
+        f.write(png)
+    width, height = Image.open('./img.png').size
+    assert width > 0 and height > 0
+    assert divcnt > 0
+
+
+def test_example():
+    assert_response(*_test_example())
+
+
+def test_api():
+    assert_response(*_test_api())
+
+
+if version.parse(chromeless_version) >= version.parse("0.9.0") and os.getenv('CHROMELESS_SERVER_FUNCTION_NAME', "") != "local":
+    def test_example_with_session_arg():
+        session = Session()  # valid default session
+        chrome = Chromeless(boto3_session=session)
+        chrome.attach(example)
+        chrome.attach(second_method)
+        title, png, divcnt = chrome.example(demo_url)
+        assert_response(title, png, divcnt)  # should work
+
+        session = Session(aws_access_key_id='FOO',
+                          aws_secret_access_key='BAR',
+                          region_name='ap-northeast-1')  # invalid session
+        chrome = Chromeless(boto3_session=session)
+        chrome.attach(example)
+        chrome.attach(second_method)
+        try:
+            chrome.example(demo_url)  # shouldn't work
+        except Exception as e:
+            assert str(e).startswith("Invalid session or AWS credentials")
+        else:
+            raise Exception("No expected exception")
 
 
 def test_example_locally_named_arg():
@@ -53,12 +89,6 @@ def test_reserved_method_name_attached():
             assert "CHROMELESS TRACEBACK IN LAMBDA END" in detail
 
 
-def test_error():
-    chrome = Chromeless()
-    from example import test_error
-    test_error(chrome)
-
-
 def test_language():
     chrome = Chromeless()
 
@@ -78,3 +108,27 @@ def test_language():
         builder=pyocr.builders.TextBuilder()
     )
     assert "予約フォーム" in txt or "朝食バイキング" in txt
+
+
+def test_error(chrome=None):
+    def method(self, url):
+        self.get(url)
+        self.find_element_by_xpath("//invalid")
+
+    chrome = Chromeless() if chrome is None else chrome
+    chrome.attach(method)
+    try:
+        chrome.method(demo_url)
+    except Exception:
+        import traceback
+        detail = traceback.format_exc()
+        REQUIRED_SERVER_VERSION = chrome.REQUIRED_SERVER_VERSION if hasattr(
+            chrome, "REQUIRED_SERVER_VERSION") else None
+        if REQUIRED_SERVER_VERSION == 1 or REQUIRED_SERVER_VERSION is None:
+            assert "return pickle.loads(zlib.decompress(base64.b64decode(obj.encode())))" in detail
+        else:
+            assert "CHROMELESS TRACEBACK IN LAMBDA START" in detail
+            assert "NoSuchElementException" in detail
+            assert "CHROMELESS TRACEBACK IN LAMBDA END" in detail
+    else:
+        assert False
