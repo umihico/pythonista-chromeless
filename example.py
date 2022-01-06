@@ -1,5 +1,6 @@
 from chromeless import Chromeless
 import os
+from boto3.session import Session
 
 demo_url, supposed_title = "https://example.com/", "example domain"
 
@@ -17,21 +18,8 @@ def second_method(self):
     return self.title
 
 
-def test_example_with_session(**session_kw):
-    """
-    example usage:
-        test_example_with_session(aws_access_key_id='<YOUR ACCESS KEY ID>',
-         aws_secret_access_key='<YOUR SECRET KEY>',
-         region_name='<REGION NAME>')
-    """
-    from boto3.session import Session
-    session = Session(**session_kw)
-    chrome = Chromeless(boto3_session=session)
-    test_example(chrome)
-
-
-def test_example(chrome=None):
-    chrome = chrome or Chromeless()
+def test_example():
+    chrome = Chromeless()
     chrome.attach(example)
     chrome.attach(second_method)
     title, png, divcnt = chrome.example(demo_url)

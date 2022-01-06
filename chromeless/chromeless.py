@@ -6,6 +6,7 @@ from .picklelib import loads, dumps
 import sys
 import requests
 import os
+import botocore
 
 
 class Chromeless():
@@ -73,10 +74,16 @@ class Chromeless():
 
     def __invoke_lambda(self, dumped):
         client = self.boto3_session.client('lambda')
-        response = client.invoke(
-            FunctionName=self.function_name,
-            InvocationType='RequestResponse',
-            LogType='Tail',
-            Payload=json.dumps({'dumped': dumped})
-        )
+        try:
+            response = client.invoke(
+                FunctionName=self.function_name,
+                InvocationType='RequestResponse',
+                LogType='Tail',
+                Payload=json.dumps({'dumped': dumped})
+            )
+        except botocore.exceptions.ClientError as e:
+            raise Exception(
+                "Invalid session or AWS credentials: {}".format(str(e)))
+        except Exception as e:
+            raise
         return response['Payload'].read().decode()

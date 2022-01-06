@@ -1,10 +1,37 @@
 from chromeless import Chromeless
+import chromeless
 from example import example, second_method, assert_response, demo_url, supposed_title
 import os
 from PIL import Image
 import sys
 import pyocr
 import pyocr.builders
+from boto3.session import Session
+from packaging import version
+chromeless_version = chromeless.__version__ if hasattr(
+    chromeless, '__version__') else '0.0.1'
+
+if version.parse(chromeless_version) >= version.parse("0.9.0"):
+    def test_example_with_session_arg():
+        session = Session()  # valid default session
+        chrome = Chromeless(boto3_session=session)
+        chrome.attach(example)
+        chrome.attach(second_method)
+        title, png, divcnt = chrome.example(demo_url)
+        assert_response(title, png, divcnt)  # should work
+
+        session = Session(aws_access_key_id='FOO',
+                          aws_secret_access_key='BAR',
+                          region_name='ap-northeast-1')  # invalid session
+        chrome = Chromeless(boto3_session=session)
+        chrome.attach(example)
+        chrome.attach(second_method)
+        try:
+            chrome.example(demo_url)  # shouldn't work
+        except Exception as e:
+            assert str(e).startswith("Invalid session or AWS credentials")
+        else:
+            raise Exception("No expected exception")
 
 
 def test_example_locally():
