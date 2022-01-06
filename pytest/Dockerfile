@@ -20,7 +20,7 @@ ARG LOCAL_CHROMELESS_PYPI_VERSION
 RUN echo "set -xve" > ./docker-entrypoint.sh && \
     echo "pip install chromeless==$LOCAL_CHROMELESS_PYPI_VERSION" >> ./docker-entrypoint.sh && \
     echo "cat interactive-test.py | python | grep -q OK || exit 1" >> ./docker-entrypoint.sh && \
-    echo "pytest example.py tests.py -ra" >> ./docker-entrypoint.sh && \
+    echo "pytest tests.py -ra" >> ./docker-entrypoint.sh && \
     chmod +x ./docker-entrypoint.sh
 
 CMD [ "sh", "docker-entrypoint.sh" ]
