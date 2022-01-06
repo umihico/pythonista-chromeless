@@ -63,3 +63,4 @@ def get_default_options():
     options.add_argument(f"--user-data-dir={mkdtemp()}")
     options.add_argument(f"--data-path={mkdtemp()}")
     options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+    return options
