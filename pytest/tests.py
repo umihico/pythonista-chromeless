@@ -1,3 +1,4 @@
+import os
 from chromeless import Chromeless
 import chromeless
 from example import example, second_method, demo_url, supposed_title, test_example as _test_example, test_api as _test_api
@@ -27,7 +28,7 @@ def test_api():
     assert_response(*_test_api())
 
 
-if version.parse(chromeless_version) >= version.parse("0.9.0"):
+if version.parse(chromeless_version) >= version.parse("0.9.0") and os.getenv('CHROMELESS_SERVER_FUNCTION_NAME', "") != "local":
     def test_example_with_session_arg():
         session = Session()  # valid default session
         chrome = Chromeless(boto3_session=session)
